@@ -8,6 +8,7 @@ parameters = {
     'aisle_col': 3,
     'passenger_count': 180,
     'steps': 50,
+    'boarding_rate': 2
 }
 
 # Run the model
