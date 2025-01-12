@@ -2,32 +2,56 @@ import agentpy as ap
 from airplane import Airplane
 from passenger import Passenger
 
+
 class BoardingModel(ap.Model):
     def setup(self):
+        """
+        Assign passengers to seats in a back-to-front order as the baseline model.
+        """
         self.airplane = Airplane(rows=self.p.rows, seats_per_row=self.p.seats_per_row, aisle_col=self.p.aisle_col)
         self.passengers = ap.AgentList(self, self.p.passenger_count, Passenger)
         self.initialize_visualization()
 
+        # Print layout for verification
+        print("Airplane Layout:")
+        self.airplane.display_layout()
+
+        # Assign seats in reverse row order
+        rows = list(range(self.airplane.rows - 1, -1, -1))  # Back to front
         seat_index = 0
+
         for idx, passenger in enumerate(self.passengers):
             while True:
-                row = seat_index // self.airplane.seats_per_row
+                # Determine row and column based on seat index
+                row = rows[seat_index // self.airplane.seats_per_row]
                 col = seat_index % self.airplane.seats_per_row
                 seat = self.airplane.layout[row][col]
+
                 seat_index += 1
-                if seat != "AISLE":
-                    passenger.seat = seat
-                    passenger.position = None
-                    passenger.boarding_delay = idx * self.p.boarding_rate
-                    break
+
+                # Skip if the seat is an aisle
+                if seat == "AISLE":
+                    print(f"Skipping aisle at row {row}, col {col}")
+                    continue  # Go to the next iteration of the loop
+
+                # Assign valid seat and exit the loop
+                print(f"Assigning seat {seat} to Passenger {idx}")
+                passenger.seat = seat
+                passenger.position = None  # Passenger starts outside the plane
+                passenger.boarding_delay = idx * self.p.boarding_rate  # Baseline: No delays
+                break  # Exit the loop after assigning a valid seat
 
         total_seats = sum(1 for row in self.airplane.layout for col in row if col != "AISLE")
         assert total_seats == len(self.passengers)
 
-        self.data = ap.DataDict({'boarded': [], 'aisle_congestion': [0]})
+        self.data = ap.DataDict({'boarded': [], 'aisle_congestion': []})
 
     def step(self):
-        aisle_occupancy = {}  # Track passengers per row of the aisle for this step
+        """
+        Advance the simulation by one step. Handles row and column movements separately,
+        ensuring passengers are seated only when fully in their assigned seat.
+        """
+        aisle_occupancy = {}  # Track passengers in the aisle
         has_moved = False  # Track if any passenger moved this step
 
         for passenger in self.passengers:
@@ -37,42 +61,47 @@ class BoardingModel(ap.Model):
                     passenger.boarding_delay -= 1
                     continue  # Skip passengers not yet ready to enter the plane
 
-                # If position is None (outside the plane), place them at the entrance
+                # Place passenger at the entrance if not yet in the plane
                 if passenger.position is None:
-                    passenger.position = (0, self.airplane.aisle_col)  # Start at the entrance
+                    passenger.position = (0, self.airplane.aisle_col)  # Entrance to the aisle
+                    print(f"Passenger {passenger} enters the plane at step {self.t}")
                     has_moved = True
                     continue
 
                 # Get current and target positions
                 current_row, current_col = passenger.position
-                target_row = int(passenger.seat[:-1]) - 1  # Extract row from seat label
-                target_col = ord(passenger.seat[-1]) - ord('A')  # Convert seat letter to column index
+                target_row = int(passenger.seat[:-1]) - 1
+                target_col = ord(passenger.seat[-1]) - ord('A')
 
-                # Track aisle occupancy
+                # Track aisle occupancy for congestion tracking
                 aisle_occupancy[current_row] = aisle_occupancy.get(current_row, 0) + 1
 
-                # Mark as boarded if passenger has reached the target
+                # Mark passenger as seated only if at both the correct row and column
                 if current_row == target_row and current_col == target_col:
                     passenger.boarded = True
+                    print(f"Passenger {passenger} seated at {passenger.seat} at step {self.t}")
+                    has_moved = True
                     continue
 
-                # Handle aisle (row) movement: Move toward the target row
+                # Row movement: Move toward the target row
                 if current_row != target_row:
                     next_row = current_row + 1 if current_row < target_row else current_row - 1
 
-                    # Ensure the next row is not congested and allows movement
-                    if aisle_occupancy.get(next_row, 0) == 0:  # Only move if the next row is free
+                    # Allow movement if there is no direct conflict in the next row
+                    if aisle_occupancy.get(next_row, 0) < 1:  # Ensure no congestion in the aisle
                         passenger.position = (next_row, current_col)
-                        has_moved = True
                         aisle_occupancy[next_row] = aisle_occupancy.get(next_row, 0) + 1
+                        print(f"Passenger {passenger} moves to row {next_row} at step {self.t}")
+                        has_moved = True
                         continue
 
-                # Handle column movement: Only if passenger is at the correct row
+                # Column movement: Only move if at the correct row
                 elif current_row == target_row and current_col != target_col:
                     next_col = current_col + 1 if current_col < target_col else current_col - 1
 
                     # Ensure the seat column is free
                     passenger.position = (current_row, next_col)
+                    print(f"Passenger {passenger} moves to column {next_col} in row {current_row} at step {self.t}")
                     has_moved = True
                     continue
 
@@ -86,7 +115,7 @@ class BoardingModel(ap.Model):
         # Update visualization
         self.update_visualization()
 
-        # Termination condition: Stop if all passengers are seated or no one moved
+        # Termination condition
         all_seated = all(passenger.boarded for passenger in self.passengers)
         if all_seated:
             print("All passengers are seated. Simulation ending.")
@@ -113,9 +142,6 @@ class BoardingModel(ap.Model):
         self.ax.legend()
 
     def update_visualization(self):
-        """
-        Update the visualization after each step, showing agents (passengers) moving in real time.
-        """
         import matplotlib.pyplot as plt
         x_positions = []
         y_positions = []
@@ -124,12 +150,19 @@ class BoardingModel(ap.Model):
         for passenger in self.passengers:
             if passenger.position is None:
                 continue
+
             row, col = passenger.position
             x_positions.append(col)
             y_positions.append(row)
-            colors.append("green" if passenger.boarded else "red" if col == self.airplane.aisle_col else "blue")
+
+            # Assign colors based on passenger status
+            if passenger.boarded:
+                colors.append("green")  # Boarded
+            elif col == self.airplane.aisle_col:
+                colors.append("red")  # In aisle
+            else:
+                colors.append("blue")  # Moving to seat
 
         self.scatter.set_offsets(list(zip(x_positions, y_positions)))
         self.scatter.set_color(colors)
-        plt.pause(0.2)  # Slower updates to visualize movements better
-    
+        plt.pause(0.2)  # Slower updates for better visualization
