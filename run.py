@@ -1,5 +1,5 @@
-import agentpy as ap
-from boarding_model import BoardingModel
+from airplane_boarding_model.boarding_model import BoardingModel
+
 
 # Define parameters
 parameters = {
@@ -11,13 +11,16 @@ parameters = {
     'boarding_rate': 2
 }
 
+
 # Run the model
 model = BoardingModel(parameters)
 results = model.run()
 
+
 # Display airplane layout
 print("\nAirplane Layout:")
 model.airplane.display_layout()
+
 
 # Display simulation results
 print("\nSimulation Results:")
@@ -27,6 +30,7 @@ if 'Total steps' in results:
     print(f"Total steps taken: {results['Total steps']}")
 if 'Final boarding percentage' in results:
     print(f"Final boarding percentage: {results['Final boarding percentage']:.2f}%")
+
 
 # Optional: Display detailed boarding data
 if 'boarded' in model.data:

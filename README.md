@@ -8,3 +8,10 @@ To install the dependencies use pip and the requirements.txt in this directory:
 ```
     $ pip install -r requirements.txt
 ```
+
+## Interactive Model Run
+To run the model interactively:
+
+```
+    $ python run.py
+```
