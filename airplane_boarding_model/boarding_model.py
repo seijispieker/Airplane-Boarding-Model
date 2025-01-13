@@ -1,7 +1,7 @@
 import agentpy as ap
 
-from airplane_boarding_model.airplane import Airplane
-from airplane_boarding_model.passenger import Passenger
+from .airplane import Airplane
+from .passenger import Passenger
 
 
 class BoardingModel(ap.Model):
