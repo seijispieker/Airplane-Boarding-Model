@@ -7,7 +7,7 @@ parameters = {
     'seats_per_row': 7,
     'aisle_col': 3,
     'passenger_count': 180,
-    'steps': 50,
+    'steps': 900,
     'boarding_rate': 2
 }
 

@@ -20,6 +20,8 @@ class BoardingModel(ap.Model):
         rows = list(range(self.airplane.rows - 1, -1, -1))  # Back to front
         seat_index = 0
 
+        print(f"rows{rows}")
+
         for idx, passenger in enumerate(self.passengers):
             while True:
                 # Determine row and column based on seat index
@@ -72,6 +74,8 @@ class BoardingModel(ap.Model):
                 current_row, current_col = passenger.position
                 target_row = int(passenger.seat[:-1]) - 1
                 target_col = ord(passenger.seat[-1]) - ord('A')
+                if target_col >= 3:
+                    target_col = target_col + 1
 
                 # Track aisle occupancy for congestion tracking
                 aisle_occupancy[current_row] = aisle_occupancy.get(current_row, 0) + 1
@@ -165,4 +169,4 @@ class BoardingModel(ap.Model):
 
         self.scatter.set_offsets(list(zip(x_positions, y_positions)))
         self.scatter.set_color(colors)
-        plt.pause(0.2)  # Slower updates for better visualization
+        plt.pause(0.5)  # Slower updates for better visualization
