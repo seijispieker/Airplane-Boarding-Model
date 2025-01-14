@@ -9,6 +9,7 @@ parameters = {
     'passenger_count': 180,
     'steps': 200,
     'boarding_rate': 2,
+    'seat_assignment_method': 'seats_back_to_front'
 }
 
 model = BoardingModel(parameters)
