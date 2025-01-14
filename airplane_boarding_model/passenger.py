@@ -18,10 +18,9 @@ class Passenger(ap.Agent):
         seated: Whether the passenger is seated.
     """
     
-    def __init__(self, model: BoardingModel, assigned_seat: Seat=None):
-        """Create a new passenger with the given assigned seat."""
-        super().__init__(model)
-        self.assigned_seat = assigned_seat
+    def setup(self):
+        """Initialize the passenger."""
+        self.assigned_seat = None
         self.seated = False
         
     def move_by(self, grid: ap.Grid, drow: int, dcol: int) -> bool:

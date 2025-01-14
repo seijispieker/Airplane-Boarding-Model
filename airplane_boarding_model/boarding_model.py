@@ -47,7 +47,6 @@ class BoardingModel(ap.Model):
         # Board new passengers according to boarding rate
         if self.last_boarded >= self.p.boarding_rate:
             # Check if there are passengers in the queue and the entrance is free
-            
             if self.queue and len(self.grid.grid[0, self.airplane.aisle_column][0]) == 0:
                 self.grid.add_agents(
                     agents=[self.queue.pop(0)],

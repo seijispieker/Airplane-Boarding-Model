@@ -62,7 +62,11 @@ class Airplane:
         self.layout = self.create_layout()
 
     def create_layout(self) -> list[list[Seat | None]]:
-        """Create the layout of the airplane."""
+        """Create the layout of the airplane.
+        
+        Returns:
+            A list of lists containing Seat objects or None if aisle.
+        """
         layout = []
         
         for row in range(self.rows):
