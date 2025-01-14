@@ -1,9 +1,15 @@
 """A module for modeling the boarding process of an airplane."""
 
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import agentpy as ap
 
 from .airplane import Airplane
 from .passenger import Passenger
+
+if TYPE_CHECKING:
+    from .airplane import Seat
 
 
 class BoardingModel(ap.Model):
@@ -63,7 +69,7 @@ class BoardingModel(ap.Model):
                 else:
                     self.grid.move_by(passenger, (1, 0))
                     
-    def seats_back_to_front(self):
+    def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.
             
         Returns:
@@ -81,7 +87,7 @@ class BoardingModel(ap.Model):
 
         return back_to_front
     
-    def seats_random(self):
+    def seats_random(self) -> list[Seat]:
         """Return a list of Seat objects in random order.
             
         Returns:

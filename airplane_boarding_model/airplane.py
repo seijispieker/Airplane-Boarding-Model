@@ -1,6 +1,10 @@
 """A module for modeling an airplane and its seats."""
 
-from .passenger import Passenger
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .passenger import Passenger
 
 
 class Seat:
@@ -13,7 +17,7 @@ class Seat:
         occupied: Whether the seat is occupied.
     """
     
-    def __init__(self, row, column, assigned_passenger: Passenger=None):
+    def __init__(self, row: int, column: int, assigned_passenger: Passenger=None):
         """Create a new seat with the given row and column.
         
         Args:
@@ -26,10 +30,10 @@ class Seat:
         self.assigned_passenger = assigned_passenger
         self.occupied = False
         
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.row + 1}{chr(self.column + 65)}"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.row + 1}{chr(self.column + 65)}"
 
 
@@ -44,7 +48,7 @@ class Airplane:
             aisle.
     """
     
-    def __init__(self, rows=30, columns=7, aisle_column=3):
+    def __init__(self, rows: int, columns: int, aisle_column: int):
         """Create a new airplane with the given parameters.
         
         Args:
@@ -57,7 +61,7 @@ class Airplane:
         self.aisle_column = aisle_column
         self.layout = self.create_layout()
 
-    def create_layout(self):
+    def create_layout(self) -> list[list[Seat | None]]:
         """Create the layout of the airplane."""
         layout = []
         
@@ -76,9 +80,8 @@ class Airplane:
             
         return layout
     
-    def assign_passengers(self, seats, passengers):
-        """Assign passengers to seats.
-        
+    def assign_passengers(self, seats: list[Seat], passengers: list[Passenger]):
+        """
         Args:
             seats: A list of Seat objects in order of assignment.
             passengers: A list of Passenger objects in order of assignment.
@@ -87,10 +90,20 @@ class Airplane:
             seat.assigned_passenger = passenger
             passenger.assigned_seat = seat
     
-    def __str__(self):
+    def __str__(self) -> str:
+        string = ""
+        
         for row in self.layout:
-            print(" | ".join(str(seat) if seat is not None else " " for seat in row))
+           string += " | ".join(str(seat) if seat is not None else " " for seat in row)
+           string += "\n"
+           
+        return string
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        string = ""
+        
         for row in self.layout:
-            print(" | ".join(str(seat) if seat is not None else " " for seat in row))
+           string += " | ".join(str(seat) if seat is not None else " " for seat in row)
+           string += "\n"
+           
+        return string
