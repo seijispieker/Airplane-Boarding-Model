@@ -1,43 +1,111 @@
-class Airplane:
-    def __init__(self, rows=30, seats_per_row=7, aisle_col=3):
+"""A module for modeling an airplane and its seats."""
+
+from .passenger import Passenger
+
+
+class Seat:
+    """A seat in an Airplane object.
+    
+    Attributes:
+        row: The row of the seat starting from index 0.
+        column: The column of the seat starting from index 0.
+        assigned_passenger: Passenger object assigned to the seat.
+        occupied: Whether the seat is occupied.
+    """
+    
+    def __init__(self, row, column, assigned_passenger: Passenger=None):
+        """Create a new seat with the given row and column.
+        
+        Args:
+            row: The row of the seat.
+            column: The column of the seat.
+            assigned_passenger: Passenger object assigned to the seat.
         """
-        Initialize an airplane layout.
-        :param rows: Number of rows in the airplane.
-        :param seats_per_row: Total seats per row (including aisle).
-        :param aisle_col: Column index for the aisle.
+        self.row = row
+        self.column = column
+        self.assigned_passenger = assigned_passenger
+        self.occupied = False
+        
+    def __str__(self):
+        return f"{self.row + 1}{chr(self.column + 65)}"
+
+    def __repr__(self):
+        return f"{self.row + 1}{chr(self.column + 65)}"
+
+
+class Airplane:
+    """An airplane object with a layout containing seats.
+    
+    Attributes:
+        rows: The number of rows in the airplane.
+        columns: The number of columns per row including aisle.
+        aisle_column: The column number of the aisle.
+        layout: The layout of the airplane containing Seat objects or None if 
+            aisle.
+    """
+    
+    def __init__(self, rows=30, columns=7, aisle_column=3):
+        """Create a new airplane with the given parameters.
+        
+        Args:
+            rows: The number of rows in the airplane.
+            columns: The number of columns per row including aisle.
+            aisle_column: The column number of the aisle.
         """
         self.rows = rows
-        self.seats_per_row = seats_per_row
-        self.aisle_col = aisle_col
+        self.columns = columns
+        self.aisle_column = aisle_column
         self.layout = self.create_layout()
 
     def create_layout(self):
-        """
-        Create a layout grid with seat labels and an aisle.
-        """
+        """Create the layout of the airplane."""
         layout = []
+        
         for row in range(self.rows):
             row_layout = []
-            for col in range(self.seats_per_row):
-                if col == self.aisle_col:
-                    row_layout.append("AISLE")  # Aisle column
+            
+            for column in range(self.columns):
+                if column == self.aisle_column:
+                    # Append Aisle
+                    row_layout.append(None)
                 else:
-                    # Generate seat label excluding the aisle
-                    seat_letter = chr(65 + (col if col < self.aisle_col else col - 1))
-                    seat_label = f"{row + 1}{seat_letter}"
-                    row_layout.append(seat_label)
+                    # Append Seat with corresponding row and column number
+                    row_layout.append(Seat(row, column))
+            
             layout.append(row_layout)
-
-        # Debugging: Print the layout to ensure correctness
-        print("Generated Airplane Layout:")
-        for row in layout:  # Print rows directly without self.display_layout()
-            print(" | ".join(row))
-
+            
         return layout
+    
+    def assign_passengers(self, passengers):
+        """Assign passengers seats back to front in the airplane.
+        
+        Args:
+            passengers: The passengers in boarding order to assign.
+        """
+        back_to_front = self.seats_back_to_front()
+        
+        for seat, passenger in zip(back_to_front, passengers):
+            seat.assigned_passenger = passenger
+            passenger.assigned_seat = seat
+            
+    def seats_back_to_front(self):
+        """Return the seats in back-to-front order."""
+        layout = list(reversed(self.layout))
+        left_columns = [row[:self.aisle_column] for row in layout]
+        right_columns = [list(reversed(row[self.aisle_column + 1:])) for row in layout]
+        back_to_front = []
+        
+        for left_row, right_row in zip(left_columns, right_columns):
+            for left_seat, right_seat in zip(left_row, right_row):
+                back_to_front.append(left_seat)
+                back_to_front.append(right_seat)
 
-    def display_layout(self):
-        """
-        Print the airplane layout for debugging.
-        """
+        return back_to_front
+    
+    def __str__(self):
         for row in self.layout:
-            print(" | ".join(row))
+            print(" | ".join(str(seat) if seat is not None else " " for seat in row))
+
+    def __repr__(self):
+        for row in self.layout:
+            print(" | ".join(str(seat) if seat is not None else " " for seat in row))
