@@ -9,6 +9,7 @@ parameters = {
     'passenger_count': 180,
     'steps': 200,
     'boarding_rate': 2,
+    'luggage_delay': 2,   #added
     'seat_assignment_method': 'seats_back_to_front'
 }
 
