@@ -1,5 +1,7 @@
 """A module for modeling an airplane and its seats."""
 
+from .passenger import Passenger
+
 
 class Seat:
     """A seat in an Airplane object.
@@ -10,7 +12,7 @@ class Seat:
         assigned_passenger: Passenger object assigned to the seat.
         occupied: Whether the seat is occupied.
     """
-    def __init__(self, row, column, assigned_passenger=None):
+    def __init__(self, row, column, assigned_passenger: Passenger=None):
         """Create a new seat with the given row and column.
         
         Args:
