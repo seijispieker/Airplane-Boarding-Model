@@ -1,12 +1,8 @@
 from agentpy import Agent
 
 class Passenger(Agent):
-    def __init__(self, model, seat=None):
-        """
-        Passenger agent.
-        :param model: The simulation model.
-        :param seat: Target seat for the passenger (e.g., "12A").
-        """
+    def __init__(self, model, assigned_seat=None):
         super().__init__(model)
-        self.seat = seat
-        self.boarded = False
+        self.group = 1
+        self.assigned_seat = assigned_seat
+        self.seated = False
