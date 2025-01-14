@@ -1,6 +1,3 @@
-import agentpy as ap
-
-
 from airplane_boarding_model.boarding_model import BoardingModel
 
 

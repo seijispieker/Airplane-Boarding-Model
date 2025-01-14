@@ -5,8 +5,8 @@ class Seat:
     """A seat in an Airplane object.
     
     Attributes:
-        row: The row of the seat.
-        column: The column of the seat.
+        row: The row of the seat starting from index 0.
+        column: The column of the seat starting from index 0.
         assigned_passenger: Passenger object assigned to the seat.
         occupied: Whether the seat is occupied.
     """
@@ -16,6 +16,7 @@ class Seat:
         Args:
             row: The row of the seat.
             column: The column of the seat.
+            assigned_passenger: Passenger object assigned to the seat.
         """
         self.row = row
         self.column = column
@@ -28,7 +29,17 @@ class Seat:
     def __repr__(self):
         return f"{self.row + 1}{chr(self.column + 65)}"
 
+
 class Airplane:
+    """An airplane object with a layout containing seats.
+    
+    Attributes:
+        rows: The number of rows in the airplane.
+        columns: The number of columns per row including aisle.
+        aisle_column: The column number of the aisle.
+        layout: The layout of the airplane containing Seat objects or None if 
+            aisle.
+    """
     def __init__(self, rows=30, columns=7, aisle_column=3):
         """Create a new airplane with the given parameters.
         
@@ -51,14 +62,28 @@ class Airplane:
             
             for column in range(self.columns):
                 if column == self.aisle_column:
+                    # Append Aisle
                     row_layout.append(None)
                 else:
+                    # Append Seat with corresponding row and column number
                     row_layout.append(Seat(row, column))
             
             layout.append(row_layout)
             
         return layout
     
+    def assign_passengers(self, passengers):
+        """Assign passengers seats back to front in the airplane.
+        
+        Args:
+            passengers: The passengers in boarding order to assign.
+        """
+        back_to_front = self.seats_back_to_front()
+        
+        for seat, passenger in zip(back_to_front, passengers):
+            seat.assigned_passenger = passenger
+            passenger.assigned_seat = seat
+            
     def seats_back_to_front(self):
         """Return the seats in back-to-front order."""
         layout = list(reversed(self.layout))
@@ -73,19 +98,10 @@ class Airplane:
 
         return back_to_front
     
-    def assign_passengers(self, passengers):
-        """Assign passengers seats back to front in the airplane.
-        
-        Args:
-            passengers: The passengers in boarding order to assign.
-        """
-        back_to_front = self.seats_back_to_front()
-        
-        for seat, passenger in zip(back_to_front, passengers):
-            seat.assigned_passenger = passenger
-            passenger.assigned_seat = seat
+    def __str__(self):
+        for row in self.layout:
+            print(" | ".join(str(seat) if seat is not None else " " for seat in row))
 
-    def print_layout(self):
-        """Print the layout of the airplane."""
+    def __repr__(self):
         for row in self.layout:
             print(" | ".join(str(seat) if seat is not None else " " for seat in row))
