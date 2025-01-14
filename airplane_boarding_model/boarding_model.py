@@ -28,7 +28,11 @@ class BoardingModel(ap.Model):
         )
         self.queue = ap.AgentList(self, self.p.passenger_count, Passenger)
         self.last_boarded = self.p.boarding_rate
-        self.airplane.assign_passengers(self.queue)
+        
+        self.airplane.assign_passengers(
+            self[self.p.seat_assignment_method](),
+            self.queue
+        )
         
         self.grid = ap.Grid(self, shape=(self.airplane.rows, self.airplane.columns))
 
@@ -58,3 +62,29 @@ class BoardingModel(ap.Model):
                         self.grid.move_by(passenger, (0, direction))
                 else:
                     self.grid.move_by(passenger, (1, 0))
+                    
+    def seats_back_to_front(self):
+        """Return a list of Seat objects in back to front order.
+            
+        Returns:
+            A list of Seat objects in back to front order.
+        """
+        layout = list(reversed(self.airplane.layout))
+        left_columns = [row[:self.airplane.aisle_column] for row in layout]
+        right_columns = [list(reversed(row[self.airplane.aisle_column + 1:])) for row in layout]
+        back_to_front = []
+        
+        for left_row, right_row in zip(left_columns, right_columns):
+            for left_seat, right_seat in zip(left_row, right_row):
+                back_to_front.append(left_seat)
+                back_to_front.append(right_seat)
+
+        return back_to_front
+    
+    def seats_random(self):
+        """Return a list of Seat objects in random order.
+            
+        Returns:
+            A list of Seat objects in random order.
+        """
+        pass  # TODO: Implement this method
