@@ -12,6 +12,7 @@ class Seat:
         assigned_passenger: Passenger object assigned to the seat.
         occupied: Whether the seat is occupied.
     """
+    
     def __init__(self, row, column, assigned_passenger: Passenger=None):
         """Create a new seat with the given row and column.
         
@@ -42,6 +43,7 @@ class Airplane:
         layout: The layout of the airplane containing Seat objects or None if 
             aisle.
     """
+    
     def __init__(self, rows=30, columns=7, aisle_column=3):
         """Create a new airplane with the given parameters.
         

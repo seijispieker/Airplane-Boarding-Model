@@ -1,3 +1,5 @@
+"""A module for modeling the boarding process of an airplane."""
+
 import agentpy as ap
 
 from .airplane import Airplane
@@ -5,9 +7,19 @@ from .passenger import Passenger
 
 
 class BoardingModel(ap.Model):
+    """A model inherinting from agentpy.Model for simulating the boarding
+    process of an airplane.
+    
+    Attributes:
+        airplane: An Airplane object.
+        queue: A list of Passenger objects waiting to board.
+        last_boarded: Number of steps since the last passenger boarded.
+        grid: A agentpy.Grid object as environment for the model.
+    """
+    
     def setup(self):
-        """
-        Assign passengers to seats in a back-to-front order as the baseline model.
+        """Create the airplane, queue, and grid. Assign passengers to seats
+        back to front.
         """
         self.airplane = Airplane(
             rows=self.p.rows,
@@ -21,6 +33,8 @@ class BoardingModel(ap.Model):
         self.grid = ap.Grid(self, shape=(self.airplane.rows, self.airplane.columns))
 
     def step(self):
+        """Move passengers to their seats and board new passengers."""
+        # Board new passengers according to boarding rate
         if self.last_boarded == self.p.boarding_rate:
             if self.queue:
                 self.grid.add_agents(
@@ -31,6 +45,7 @@ class BoardingModel(ap.Model):
         else:
             self.last_boarded += 1
 
+        # Move passengers to their seats
         for passenger in self.grid.agents:
             position = self.grid.positions[passenger]
             
