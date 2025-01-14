@@ -45,8 +45,10 @@ class BoardingModel(ap.Model):
     def step(self):
         """Move passengers to their seats and board new passengers."""
         # Board new passengers according to boarding rate
-        if self.last_boarded == self.p.boarding_rate:
-            if self.queue:
+        if self.last_boarded >= self.p.boarding_rate:
+            # Check if there are passengers in the queue and the entrance is free
+            
+            if self.queue and len(self.grid.grid[0, self.airplane.aisle_column][0]) == 0:
                 self.grid.add_agents(
                     agents=[self.queue.pop(0)],
                     positions=[(0, self.airplane.aisle_column)]
@@ -60,14 +62,16 @@ class BoardingModel(ap.Model):
             position = self.grid.positions[passenger]
             
             if not passenger.seated:
+                # If in the correct row
                 if position[0] == passenger.assigned_seat.row:
+                    # If in the correct column
                     if position[1] == passenger.assigned_seat.column:
                         passenger.seated = True
                     else:
                         direction = 1 if passenger.assigned_seat.column > position[1] else -1
-                        self.grid.move_by(passenger, (0, direction))
+                        passenger.move_by(self.grid, drow=0, dcol=direction)
                 else:
-                    self.grid.move_by(passenger, (1, 0))
+                    passenger.move_by(self.grid, drow=1, dcol=0)
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.

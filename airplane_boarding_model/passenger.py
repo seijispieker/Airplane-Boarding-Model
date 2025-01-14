@@ -23,3 +23,22 @@ class Passenger(ap.Agent):
         super().__init__(model)
         self.assigned_seat = assigned_seat
         self.seated = False
+        
+    def move_by(self, grid: ap.Grid, drow: int, dcol: int) -> bool:
+        """Move the passenger by the given row and column offset if the target
+        is free.
+        
+        Args:
+            grid: The grid to move on.
+            drow: The row offset.
+            dcol: The column offset.
+        Returns:
+            Whether the move was successful.
+        """
+        position = grid.positions[self]
+        
+        if len(grid.grid[position[0] + drow, position[1] + dcol][0]) == 0:
+            grid.move_by(self, (drow, dcol))
+            return True
+        else:
+            return False
