@@ -1,13 +1,6 @@
 """A module for modeling a passenger of an airplane."""
 
-from __future__ import annotations
-from typing import TYPE_CHECKING
-
 import agentpy as ap
-
-if TYPE_CHECKING:
-    from .airplane import Seat
-    from .boarding_model import BoardingModel
 
 
 class Passenger(ap.Agent):
@@ -22,6 +15,7 @@ class Passenger(ap.Agent):
         """Initialize the passenger."""
         self.assigned_seat = None
         self.seated = False
+        self.luggage_delay = self.p.luggage_delay
         
     def move_by(self, grid: ap.Grid, drow: int, dcol: int) -> bool:
         """Move the passenger by the given row and column offset if the target

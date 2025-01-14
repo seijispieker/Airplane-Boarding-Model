@@ -63,19 +63,15 @@ class BoardingModel(ap.Model):
             if not passenger.seated:
                 # If in the correct row
                 if position[0] == passenger.assigned_seat.row:
-                    #making a luggage delay for all agents before moving to correct column
-                    if not hasattr(passenger, 'luggage_delay'):
-                        passenger.luggage_delay = self.p.luggage_delay  #initializing luggage delay
-                        
                     if passenger.luggage_delay > 0:
                         passenger.luggage_delay -= 1
-                
-                    # If in the correct column
-                    if position[1] == passenger.assigned_seat.column:
-                        passenger.seated = True
                     else:
-                        direction = 1 if passenger.assigned_seat.column > position[1] else -1
-                        passenger.move_by(self.grid, drow=0, dcol=direction)
+                        # If in the correct column
+                        if position[1] == passenger.assigned_seat.column:
+                            passenger.seated = True
+                        else:
+                            direction = 1 if passenger.assigned_seat.column > position[1] else -1
+                            passenger.move_by(self.grid, drow=0, dcol=direction)
                 else:
                     passenger.move_by(self.grid, drow=1, dcol=0)
                     
