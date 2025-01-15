@@ -11,6 +11,7 @@ from .passenger import Passenger
 if TYPE_CHECKING:
     from .airplane import Seat
 
+from random import shuffle
 
 class BoardingModel(ap.Model):
     """A model inherinting from agentpy.Model for simulating the boarding
@@ -42,6 +43,7 @@ class BoardingModel(ap.Model):
         
         self.grid = ap.Grid(self, shape=(self.airplane.rows, self.airplane.columns))
 
+
     def step(self):
         """Move passengers to their seats and board new passengers."""
         # Board new passengers according to boarding rate
@@ -61,6 +63,11 @@ class BoardingModel(ap.Model):
             position = self.grid.positions[passenger]
             
             if not passenger.seated:
+                # added for passing delay
+                if passenger.passing_delay > 0:
+                    passenger.passing_delay -= 1
+                    continue
+    
                 # If in the correct row
                 if position[0] == passenger.assigned_seat.row:
                     if passenger.luggage_delay > 0:
@@ -74,6 +81,8 @@ class BoardingModel(ap.Model):
                             passenger.move_by(self.grid, drow=0, dcol=direction)
                 else:
                     passenger.move_by(self.grid, drow=1, dcol=0)
+
+            
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.
@@ -93,10 +102,21 @@ class BoardingModel(ap.Model):
 
         return back_to_front
     
-    def seats_random(self) -> list[Seat]:
+    def seats_random(self) -> list:
         """Return a list of Seat objects in random order.
             
         Returns:
             A list of Seat objects in random order.
         """
-        pass  # TODO: Implement this method
+        all_seats = []
+        
+        for row in self.airplane.layout:
+            for seat in row:
+                if seat is not None:  # check if it's not an aisle 
+                    all_seats.append(seat)
+        
+        shuffle(all_seats)  
+        return all_seats
+
+
+
