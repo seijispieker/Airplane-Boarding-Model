@@ -3,7 +3,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-import agentpy as ap
+import mesa
 
 from .airplane import Airplane
 from .passenger import Passenger
@@ -12,68 +12,99 @@ if TYPE_CHECKING:
     from .airplane import Seat
 
 
-class BoardingModel(ap.Model):
-    """A model inherinting from agentpy.Model for simulating the boarding
-    process of an airplane.
+class BoardingModel(mesa.Model):
+    """A model for simulating the boarding process of an airplane.
     
     Attributes:
-        airplane: An Airplane object.
-        queue: A list of Passenger objects waiting to board.
-        last_boarded: Number of steps since the last passenger boarded.
-        grid: A agentpy.Grid object as environment for the model.
+        grid: SingleGrid object as an environment for the model.
+        queue: Agentset of Passenger objects waiting to board.
+        boarding_rate: The number of steps between boarding new passengers.
+        entrance: The position of the entrance to the airplane.
+        airplane: Airplane object containing the layout of the airplane.
+        last_boarded: The number of steps since the last passenger was boarded.
+        datacollector: DataCollector object for collecting data.
     """
     
-    def setup(self):
-        """Create the airplane, queue, and grid. Assign passengers to seats
-        back to front.
+    def __init__(
+        self,
+        rows: int = 30,
+        columns: int = 7,
+        aisle_column: int = 3,
+        passenger_count: int = 180,
+        boarding_rate: int = 2,
+        luggage_delay: int = 2,
+        boarding_method: str = "back_to_front",
+        seed: int = 42,
+    ):
+        """Create a new boarding model with the given parameters.
+        
+        Args:
+            rows: The number of rows in the airplane.
+            columns: The number of columns per row including aisle.
+            aisle_column: The column number of the aisle.
+            passenger_count: The number of passengers to board.
+            boarding_rate: The number of steps between boarding new passengers.
+            luggage_delay: The number of steps a passenger waits to store luggage.
+            boarding_method: The method used to assign passengers to seats.
+            seed: The random seed for the model.
         """
-        self.airplane = Airplane(
-            rows=self.p.rows,
-            columns=self.p.columns,
-            aisle_column=self.p.aisle_column,
-        )
-        self.queue = ap.AgentList(self, self.p.passenger_count, Passenger)
-        self.last_boarded = self.p.boarding_rate
+        super().__init__(seed=seed)
         
+        self.grid = mesa.space.SingleGrid(
+            width=rows,
+            height=columns,
+            torus=False,
+        )
+        
+        self.queue = Passenger.create_agents(
+            model=self,
+            n=passenger_count,
+            luggage_delay=luggage_delay,
+        )
+        
+        self.boarding_rate = boarding_rate
+        self.entrance = (0, aisle_column)
+        
+        # Create airplane and assign passengers seats
+        self.airplane = Airplane(rows, columns, aisle_column)
         self.airplane.assign_passengers(
-            self[self.p.seat_assignment_method](),
-            self.queue
+            seats=getattr(self, f"seats_{boarding_method}")(),
+            passengers=self.queue
         )
         
-        self.grid = ap.Grid(self, shape=(self.airplane.rows, self.airplane.columns))
+        # Place first passenger in the entrance
+        self.grid.place_agent(
+            agent=self.queue.pop(),
+            pos=self.entrance
+        )
+        self.last_boarded = 0
+        
+        self.datacollector = mesa.DataCollector(
+            model_reporters={"Queue Size": lambda model: len(model.queue)},
+        )
 
     def step(self):
-        """Move passengers to their seats and board new passengers."""
+        """Advance the model by one step.
+        
+        The model advances by boarding new passengers according to the boarding
+        rate and moving all agents one step.
+        """
         # Board new passengers according to boarding rate
-        if self.last_boarded >= self.p.boarding_rate:
+        if self.last_boarded >= self.boarding_rate:
             # Check if there are passengers in the queue and the entrance is free
-            if self.queue and len(self.grid.grid[0, self.airplane.aisle_column][0]) == 0:
-                self.grid.add_agents(
-                    agents=[self.queue.pop(0)],
-                    positions=[(0, self.airplane.aisle_column)]
+            if self.queue and self.grid.is_cell_empty(self.entrance):
+                self.grid.place_agent(
+                    agent=self.queue.pop(),
+                    pos=self.entrance
                 )
                 self.last_boarded = 1
         else:
             self.last_boarded += 1
-
-        # Move passengers to their seats
-        for passenger in self.grid.agents:
-            position = self.grid.positions[passenger]
-            
-            if not passenger.seated:
-                # If in the correct row
-                if position[0] == passenger.assigned_seat.row:
-                    if passenger.luggage_delay > 0:
-                        passenger.luggage_delay -= 1
-                    else:
-                        # If in the correct column
-                        if position[1] == passenger.assigned_seat.column:
-                            passenger.seated = True
-                        else:
-                            direction = 1 if passenger.assigned_seat.column > position[1] else -1
-                            passenger.move_by(self.grid, drow=0, dcol=direction)
-                else:
-                    passenger.move_by(self.grid, drow=1, dcol=0)
+        
+        self.grid.agents.do("step")
+        self.datacollector.collect(self)
+        
+        
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.
