@@ -101,7 +101,7 @@ class BoardingModel(mesa.Model):
         else:
             self.last_boarded += 1
         
-        self.grid.agents.do("step")
+        self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
         
         
