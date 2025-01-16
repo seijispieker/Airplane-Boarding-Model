@@ -62,9 +62,19 @@ class Passenger(mesa.Agent):
         else:
             self.move(drow=1, dcol=0)
         
-    def move(self, drow: int, dcol: int):
-        """Move passenger by the given row and column offset if possible."""
+    def move(self, drow: int, dcol: int) -> bool:
+        """Move the passenger by the given row and column offsets.
+        
+        Args:
+            drow: The row offset.
+            dcol: The column offset.    
+        Returns:
+            True if the passenger moved, False if move not possible.
+        """
         target = (self.pos[0] + drow, self.pos[1] + dcol)
         
         if self.model.grid.is_cell_empty(target):
             self.model.grid.move_agent(self, target)
+            return True
+        else:
+            return False
