@@ -5,19 +5,20 @@ from mesa.visualization import (
 )
 
 from airplane_boarding_model.boarding_model import BoardingModel
+from airplane_boarding_model.passenger import Passenger
 
 
-def passenger_potrayel(agent):
-    if agent is None:
+def passenger_potrayel(passenger: Passenger):
+    if passenger is None:
         return
     
     portrayal = {
-        "Shape": "circle",
-        "Filled": "true",
-        "r": 0.5,
-        "Layer": 1,
-        "Color": "red",
+        "size": 50,
     }
+    
+    if passenger.seated:
+        portrayal["color"] = "grey"
+    
     return portrayal
         
         
@@ -61,7 +62,6 @@ model_params = {
 model = BoardingModel()
 space_component = make_space_component(
     agent_portrayal=passenger_potrayel,
-    
 )
 
 page = SolaraViz(
