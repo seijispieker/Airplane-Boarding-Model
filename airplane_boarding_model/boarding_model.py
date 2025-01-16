@@ -60,7 +60,7 @@ class BoardingModel(mesa.Model):
         
         self.queue = Passenger.create_agents(
             model=self,
-            n=passenger_count,
+            n=int(passenger_count),
             luggage_delay=luggage_delay,
         )
         
