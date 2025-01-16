@@ -1,3 +1,6 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from mesa.visualization import (
     Slider,
     SolaraViz,
@@ -5,22 +8,11 @@ from mesa.visualization import (
 )
 
 from airplane_boarding_model.boarding_model import BoardingModel
-from airplane_boarding_model.passenger import Passenger
 
+if TYPE_CHECKING:
+    import matplotlib.pyplot as plt
+    from airplane_boarding_model.passenger import Passenger
 
-def passenger_potrayel(passenger: Passenger):
-    if passenger is None:
-        return
-    
-    portrayal = {
-        "size": 50,
-    }
-    
-    if passenger.seated:
-        portrayal["color"] = "grey"
-    
-    return portrayal
-        
         
 model_params = {
     "rows": 30,
@@ -60,9 +52,31 @@ model_params = {
 
 
 model = BoardingModel()
+
+
+def passenger_potrayel(passenger: Passenger):
+    if passenger is None:
+        return
+    
+    portrayal = {
+        "size": 50,
+    }
+    
+    if passenger.seated:
+        portrayal["color"] = "grey"
+    
+    return portrayal
+
+
+def post_process_space(ax: plt.Axes):
+    ax.set_xticks(range(model_params["rows"]))
+
+
 space_component = make_space_component(
     agent_portrayal=passenger_potrayel,
+    post_process=post_process_space,
 )
+
 
 page = SolaraViz(
     model,

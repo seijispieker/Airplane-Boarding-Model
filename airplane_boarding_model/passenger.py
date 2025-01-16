@@ -3,11 +3,13 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import mesa
+
 if TYPE_CHECKING:
     from .airplane import Seat
     from .boarding_model import BoardingModel
 
-import mesa
+
 
 
 class Passenger(mesa.Agent):
