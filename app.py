@@ -47,7 +47,14 @@ model_params = {
         "type": "InputText",
         "value": 42,
         "label": "Random Seed",
-    }
+    },
+    "adherence": Slider(
+        label="adherence",
+        value=95,
+        min=0,
+        max=100,
+        step=1,
+    ),
 }
 
 
