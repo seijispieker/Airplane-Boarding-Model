@@ -3,7 +3,10 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import mesa.agent
+
 if TYPE_CHECKING:
+    import mesa
     from .passenger import Passenger
 
 
@@ -86,13 +89,18 @@ class Airplane:
             
         return layout
     
-    def assign_passengers(self, seats: list[Seat], passengers: list[Passenger]):
-        """
+    def assign_passengers(
+        self,
+        seats: list[Seat],
+        queue: mesa.agent.AgentSet[Passenger]
+    ):
+        """Assign queue of passengers to seats in the airplane.
+        
         Args:
-            seats: A list of Seat objects in order of assignment.
-            passengers: A list of Passenger objects in order of assignment.
+            seats: List of Seat objects in order to assign passengers to.
+            queue: AgentSet of Passenger objects to assign to seats.
         """
-        for seat, passenger in zip(seats, passengers):
+        for seat, passenger in zip(seats, queue):
             seat.assigned_passenger = passenger
             passenger.assigned_seat = seat
     

@@ -16,6 +16,7 @@ class BoardingModel(mesa.Model):
     """A model for simulating the boarding process of an airplane.
     
     Attributes:
+        seed: The random seed for the model.
         grid: SingleGrid object as an environment for the model.
         queue: Agentset of Passenger objects waiting to board.
         boarding_rate: The number of steps between boarding new passengers.
@@ -27,28 +28,31 @@ class BoardingModel(mesa.Model):
     
     def __init__(
         self,
+        seed: int = 42,
         rows: int = 30,
         columns: int = 7,
         aisle_column: int = 3,
         passenger_count: int = 180,
+        steps_per_second: int = 1,
+        movement_speed: int = 1,
         boarding_rate: int = 2,
         luggage_delay: int = 2,
-        boarding_method: str = "back_to_front",
-        seed: int = 42,
+        seat_assignment_method: str = "back_to_front",
         adherence: int = 95,
     ):
-        self.adherence = adherence
         """Create a new boarding model with the given parameters.
         
         Args:
+            seed: The random seed for the model.
             rows: The number of rows in the airplane.
             columns: The number of columns per row including aisle.
             aisle_column: The column number of the aisle.
             passenger_count: The number of passengers to board.
-            boarding_rate: The number of steps between boarding new passengers.
-            luggage_delay: The number of steps a passenger waits to store luggage.
-            boarding_method: The method used to assign passengers to seats.
-            seed: The random seed for the model.
+            movement_speed: The number of cells a passenger moves per second.
+            boarding_rate: The number of seconds between boarding new passengers.
+            luggage_delay: The number of seconds a passenger waits to store luggage.
+            seat_assignment_method: The method used to assign passengers to
+                seats given a queue of passengers.
         """
         super().__init__(seed=seed)
         
@@ -58,20 +62,22 @@ class BoardingModel(mesa.Model):
             torus=False,
         )
         
+        self.adherence = adherence
         self.queue = Passenger.create_agents(
             model=self,
             n=int(passenger_count),
-            luggage_delay=luggage_delay,
+            luggage_delay=steps_per_second * luggage_delay,
+            steps_per_move=steps_per_second * movement_speed,
         )
         
-        self.boarding_rate = boarding_rate
+        self.boarding_rate = steps_per_second * boarding_rate
         self.entrance = (0, aisle_column)
         
         # Create airplane and assign passengers seats
         self.airplane = Airplane(rows, columns, aisle_column)
         self.airplane.assign_passengers(
-            seats=getattr(self, f"seats_{boarding_method}")(),
-            passengers=self.queue
+            seats=getattr(self, f"seats_{seat_assignment_method}")(),
+            queue=self.queue
         )
         
         # Place first passenger in the entrance
@@ -79,7 +85,7 @@ class BoardingModel(mesa.Model):
             agent=self.queue.pop(),
             pos=self.entrance
         )
-        self.last_boarded = 0
+        self.last_boarded = 1
         
         self.datacollector = mesa.DataCollector(
             model_reporters={"Queue Size": lambda model: len(model.queue)},
@@ -106,8 +112,6 @@ class BoardingModel(mesa.Model):
         
         self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
-        
-        
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.

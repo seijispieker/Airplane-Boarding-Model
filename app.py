@@ -15,6 +15,11 @@ if TYPE_CHECKING:
 
         
 model_params = {
+    "seed": {
+        "type": "InputText",
+        "value": 42,
+        "label": "Random Seed",
+    },
     "rows": 30,
     "columns": 7,
     "aisle_column": 3,
@@ -23,30 +28,39 @@ model_params = {
         "value": 180,
         "label": "Passenger Count",
     },
+    "steps_per_second": Slider(
+        label="Steps per Second",
+        value=1,
+        min=1,
+        max=100,
+        step=1,
+    ),
+    "movement_speed": Slider(
+        label="Movement Speed (Cells per Second)",
+        value=1,
+        min=1,
+        max=10,
+        step=1,
+    ),
     "boarding_rate": Slider(
-        label="Boarding Rate",
+        label="Boarding Rate (Seconds)",
         value=2,
         min=1,
         max=10,
         step=1,
     ),
     "luggage_delay": Slider(
-        label="Luggage Delay",
+        label="Luggage Delay (Seconds)",
         value=2,
         min=1,
         max=10,
         step=1,
     ),
-    "boarding_method": {
+    "seat_assignment_method": {
         "type": "Select",
         "value": "back_to_front",
         "values": ["back_to_front", "random"],
-        "label": "Boarding Method",
-    },
-    "seed": {
-        "type": "InputText",
-        "value": 42,
-        "label": "Random Seed",
+        "label": "Seat Assignment Method",
     },
     "adherence": Slider(
         label="adherence",
