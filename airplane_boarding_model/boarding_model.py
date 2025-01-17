@@ -7,7 +7,7 @@ import mesa
 
 from .airplane import Airplane
 from .passenger import Passenger
-from random import randint
+
 if TYPE_CHECKING:
     from .airplane import Seat
 
@@ -145,7 +145,7 @@ class BoardingModel(mesa.Model):
         
         random_index_list = []
         while len(random_index_list) < amount_to_swap:
-            i = randint(0, len(method_list)-1)
+            i = self.random.randint(0, len(method_list)-1)
             if i not in random_index_list:
                 random_index_list.append(i)
         
