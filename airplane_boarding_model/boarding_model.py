@@ -27,26 +27,27 @@ class BoardingModel(mesa.Model):
     
     def __init__(
         self,
+        seed: int = 42,
         rows: int = 30,
         columns: int = 7,
         aisle_column: int = 3,
         passenger_count: int = 180,
         boarding_rate: int = 2,
         luggage_delay: int = 2,
-        boarding_method: str = "back_to_front",
-        seed: int = 42,
+        seat_assignment_method: str = "back_to_front",
     ):
         """Create a new boarding model with the given parameters.
         
         Args:
+            seed: The random seed for the model.
             rows: The number of rows in the airplane.
             columns: The number of columns per row including aisle.
             aisle_column: The column number of the aisle.
             passenger_count: The number of passengers to board.
             boarding_rate: The number of steps between boarding new passengers.
             luggage_delay: The number of steps a passenger waits to store luggage.
-            boarding_method: The method used to assign passengers to seats.
-            seed: The random seed for the model.
+            seat_assignment_method: The method used to assign passengers to
+                seats given a queue of passengers.
         """
         super().__init__(seed=seed)
         
@@ -68,8 +69,8 @@ class BoardingModel(mesa.Model):
         # Create airplane and assign passengers seats
         self.airplane = Airplane(rows, columns, aisle_column)
         self.airplane.assign_passengers(
-            seats=getattr(self, f"seats_{boarding_method}")(),
-            passengers=self.queue
+            seats=getattr(self, f"seats_{seat_assignment_method}")(),
+            queue=self.queue
         )
         
         # Place first passenger in the entrance
@@ -103,8 +104,6 @@ class BoardingModel(mesa.Model):
         
         self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
-        
-        
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.

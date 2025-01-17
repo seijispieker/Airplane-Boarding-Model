@@ -10,8 +10,6 @@ if TYPE_CHECKING:
     from .boarding_model import BoardingModel
 
 
-
-
 class Passenger(mesa.Agent):
     """A passenger of an airplane.
     
