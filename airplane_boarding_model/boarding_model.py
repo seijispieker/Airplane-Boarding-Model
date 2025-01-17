@@ -16,6 +16,7 @@ class BoardingModel(mesa.Model):
     """A model for simulating the boarding process of an airplane.
     
     Attributes:
+        seed: The random seed for the model.
         grid: SingleGrid object as an environment for the model.
         queue: Agentset of Passenger objects waiting to board.
         boarding_rate: The number of steps between boarding new passengers.
@@ -32,6 +33,8 @@ class BoardingModel(mesa.Model):
         columns: int = 7,
         aisle_column: int = 3,
         passenger_count: int = 180,
+        steps_per_second: int = 1,
+        movement_speed: int = 1,
         boarding_rate: int = 2,
         luggage_delay: int = 2,
         seat_assignment_method: str = "back_to_front",
@@ -44,8 +47,9 @@ class BoardingModel(mesa.Model):
             columns: The number of columns per row including aisle.
             aisle_column: The column number of the aisle.
             passenger_count: The number of passengers to board.
-            boarding_rate: The number of steps between boarding new passengers.
-            luggage_delay: The number of steps a passenger waits to store luggage.
+            movement_speed: The number of cells a passenger moves per second.
+            boarding_rate: The number of seconds between boarding new passengers.
+            luggage_delay: The number of seconds a passenger waits to store luggage.
             seat_assignment_method: The method used to assign passengers to
                 seats given a queue of passengers.
         """
@@ -60,10 +64,11 @@ class BoardingModel(mesa.Model):
         self.queue = Passenger.create_agents(
             model=self,
             n=passenger_count,
-            luggage_delay=luggage_delay,
+            luggage_delay=steps_per_second * luggage_delay,
+            steps_per_move=steps_per_second * movement_speed,
         )
         
-        self.boarding_rate = boarding_rate
+        self.boarding_rate = steps_per_second * boarding_rate
         self.entrance = (0, aisle_column)
         
         # Create airplane and assign passengers seats
@@ -78,7 +83,7 @@ class BoardingModel(mesa.Model):
             agent=self.queue.pop(),
             pos=self.entrance
         )
-        self.last_boarded = 0
+        self.last_boarded = 1
         
         self.datacollector = mesa.DataCollector(
             model_reporters={"Queue Size": lambda model: len(model.queue)},
