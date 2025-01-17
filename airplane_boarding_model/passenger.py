@@ -15,14 +15,17 @@ class Passenger(mesa.Agent):
     
     Attributes:
         assigned_seat: The Seat object assigned to the passenger.
+        steps_per_move: The number of steps it takes for the passenger to move.
         luggage_delay: The number of steps a passenger waits to store luggage.
         seated: Whether the passenger is seated.
+        last_move: The number of steps since the passenger last moved.
     """
     
     def __init__(
         self,
         model: BoardingModel,
         luggage_delay: int,
+        steps_per_move: int,
         assigned_seat: Seat = None,
         seated: bool = False,
     ):
@@ -31,16 +34,21 @@ class Passenger(mesa.Agent):
         Args:
             model: The BoardingModel object containing the passenger.
             luggage_delay: The number of steps a passenger waits to store luggage.
+            steps_per_move: The number of steps it takes for the passenger to move.
             assigned_seat: The Seat object assigned to the passenger.
             seated: Whether the passenger is seated.
         """
         super().__init__(model)
-        self.assigned_seat = assigned_seat
         self.luggage_delay = luggage_delay
+        self.steps_per_move = steps_per_move
+        self.assigned_seat = assigned_seat
         self.seated = seated
+        self.last_move = steps_per_move
         
     def step(self):
         """Advance the passenger by one step."""
+        self.last_move += 1
+        
         if self.seated:
             return
         
@@ -71,8 +79,9 @@ class Passenger(mesa.Agent):
         """
         target = (self.pos[0] + drow, self.pos[1] + dcol)
         
-        if self.model.grid.is_cell_empty(target):
+        if self.model.grid.is_cell_empty(target) and self.last_move >= self.steps_per_move:
             self.model.grid.move_agent(self, target)
+            self.last_move = 0
             return True
         else:
             return False
