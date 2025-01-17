@@ -7,7 +7,7 @@ import mesa
 
 from .airplane import Airplane
 from .passenger import Passenger
-
+from random import randint
 if TYPE_CHECKING:
     from .airplane import Seat
 
@@ -38,6 +38,7 @@ class BoardingModel(mesa.Model):
         boarding_rate: int = 2,
         luggage_delay: int = 2,
         seat_assignment_method: str = "back_to_front",
+        adherence: int = 95,
     ):
         """Create a new boarding model with the given parameters.
         
@@ -61,9 +62,10 @@ class BoardingModel(mesa.Model):
             torus=False,
         )
         
+        self.adherence = adherence
         self.queue = Passenger.create_agents(
             model=self,
-            n=passenger_count,
+            n=int(passenger_count),
             luggage_delay=steps_per_second * luggage_delay,
             steps_per_move=steps_per_second * movement_speed,
         )
@@ -88,6 +90,7 @@ class BoardingModel(mesa.Model):
         self.datacollector = mesa.DataCollector(
             model_reporters={"Queue Size": lambda model: len(model.queue)},
         )
+        
 
     def step(self):
         """Advance the model by one step.
@@ -125,7 +128,7 @@ class BoardingModel(mesa.Model):
             for left_seat, right_seat in zip(left_row, right_row):
                 back_to_front.append(left_seat)
                 back_to_front.append(right_seat)
-
+        back_to_front = self.padherence(back_to_front)
         return back_to_front
     
     def seats_random(self) -> list[Seat]:
@@ -135,3 +138,22 @@ class BoardingModel(mesa.Model):
             A list of Seat objects in random order.
         """
         pass  # TODO: Implement this method
+
+    def padherence(self, method_list):
+        adherence= 100 - self.adherence
+        amount_to_swap = round(len(method_list) * adherence / 100, 0)
+        
+        random_index_list = []
+        while len(random_index_list) < amount_to_swap:
+            i = randint(0, len(method_list)-1)
+            if i not in random_index_list:
+                random_index_list.append(i)
+        
+        if amount_to_swap % 2 == 0: # check if the list can be split into 2
+            for j in range(int(amount_to_swap / 2)): 
+                method_list[random_index_list[j]], method_list[random_index_list[-j]-1] = method_list[random_index_list[-j]-1], method_list[random_index_list[j]] # swapping first half of random indexes with second half of rng indexes
+        else:
+            for j in range(int((amount_to_swap-1) / 2)): # doing the same as before only the middle number of the list will be swapped with the first item in the random index list
+                method_list[random_index_list[j]], method_list[random_index_list[-j]-1] = method_list[random_index_list[-j]-1], method_list[random_index_list[j]]
+            method_list[random_index_list[int((amount_to_swap-1) / 2)]] , method_list[random_index_list[0]] = method_list[random_index_list[0]], method_list[random_index_list[int((amount_to_swap-1) / 2)]] 
+        return method_list

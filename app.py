@@ -62,6 +62,13 @@ model_params = {
         "values": ["back_to_front", "random"],
         "label": "Seat Assignment Method",
     },
+    "adherence": Slider(
+        label="adherence",
+        value=95,
+        min=0,
+        max=100,
+        step=1,
+    ),
 }
 
 

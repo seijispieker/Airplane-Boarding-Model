@@ -33,6 +33,7 @@ class Seat:
         self.assigned_passenger = assigned_passenger
         self.occupied = False
         
+        
     def __str__(self) -> str:
         return f"{self.row + 1}{chr(self.column + 65)}"
 
@@ -63,6 +64,7 @@ class Airplane:
         self.columns = columns
         self.aisle_column = aisle_column
         self.layout = self.create_layout()
+        
 
     def create_layout(self) -> list[list[Seat | None]]:
         """Create the layout of the airplane.
