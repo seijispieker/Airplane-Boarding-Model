@@ -15,6 +15,11 @@ if TYPE_CHECKING:
 
         
 model_params = {
+    "seed": {
+        "type": "InputText",
+        "value": 42,
+        "label": "Random Seed",
+    },
     "rows": 30,
     "columns": 7,
     "aisle_column": 3,
@@ -37,17 +42,12 @@ model_params = {
         max=10,
         step=1,
     ),
-    "boarding_method": {
+    "seat_assignment_method": {
         "type": "Select",
         "value": "back_to_front",
         "values": ["back_to_front", "random"],
-        "label": "Boarding Method",
+        "label": "Seat Assignment Method",
     },
-    "seed": {
-        "type": "InputText",
-        "value": 42,
-        "label": "Random Seed",
-    }
 }
 
 
