@@ -2,21 +2,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .boarding_model import BoardingModel
 
-def simulate_boarding_time(passenger_count, runs=10):
+def simulate_boarding_time(passenger_count, runs=10, steps_per_second=1):
     """
     Simulates the boarding process and calculates the average boarding time.
     
     Args:
         passenger_count: Number of passengers on the plane.
         runs: Number of simulation runs to average results.
+        steps_per_second: Number of steps per second in the simulation.
         
     Returns:
-        The average boarding time over the simulation runs.
+        The average boarding time (in minutes) over the simulation runs.
     """
-    #total_time = 0
-    times = []   #new
+    times = []  
 
-    for _ in range(runs):
+    for run in range(runs):
         model = BoardingModel(
             rows=30,
             columns=7,
@@ -24,13 +24,16 @@ def simulate_boarding_time(passenger_count, runs=10):
             passenger_count=passenger_count,
             boarding_rate=2,
             luggage_delay=2,
+            steps_per_second=steps_per_second,
             seat_assignment_method="back_to_front",
         )
         time = 0
+
         while model.queue or any(not p.seated for p in model.grid.agents):
             model.step()
             time += 1
-        times.append(time)  
+
+        times.append((time / steps_per_second) / 60)  # Convert to minutes
 
         return times 
     
@@ -42,8 +45,11 @@ def plot_boarding_time_vs_occupancy():
     passenger_counts = range(29, 181, 10)
     all_times = []
     average_times = []
+    steps_per_second = 1 # Can be adjusted for faster or slower simulations
+
     for count in passenger_counts:
-        boarding_times = simulate_boarding_time(count, runs=10)      # 10 runs per passenger count
+        #changed 
+        boarding_times = simulate_boarding_time(count, runs=10, steps_per_second=steps_per_second)      # 10 runs per passenger count
         all_times.extend([(count, time) for time in boarding_times])
         average_times.append((count, sum(boarding_times) / len(boarding_times)))
 
