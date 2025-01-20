@@ -34,9 +34,9 @@ class BoardingModel(mesa.Model):
         aisle_column: int = 3,
         passenger_count: int = 180,
         steps_per_second: int = 1,
-        movement_speed: int = 1,
-        boarding_rate: int = 2,
-        luggage_delay: int = 2,
+        movement_speed_cells_per_second: float = 1,
+        boarding_rate_seconds: float = 1,
+        luggage_delay_seconds: float = 2,
         seat_assignment_method: str = "back_to_front",
         adherence: int = 95,
     ):
@@ -54,6 +54,7 @@ class BoardingModel(mesa.Model):
             seat_assignment_method: The method used to assign passengers to
                 seats given a queue of passengers.
         """
+        print("Initializing new Boarding Model")
         super().__init__(seed=seed)
         
         self.grid = mesa.space.SingleGrid(
@@ -62,15 +63,22 @@ class BoardingModel(mesa.Model):
             torus=False,
         )
         
+        self.steps_per_move = round(steps_per_second * movement_speed_cells_per_second)
+        self.luggage_delay = round(steps_per_second * luggage_delay_seconds)
+        self.boarding_rate = round(steps_per_second * boarding_rate_seconds)
+        
+        print(f"Steps per move: {self.steps_per_move}")
+        print(f"Luggage delay: {self.luggage_delay} steps")
+        print(f"Boarding rate: {self.boarding_rate} steps")
+        
         self.adherence = adherence
         self.queue = Passenger.create_agents(
             model=self,
             n=int(passenger_count),
-            luggage_delay=steps_per_second * luggage_delay,
-            steps_per_move=steps_per_second * movement_speed,
+            luggage_delay=self.luggage_delay,
+            steps_per_move=self.steps_per_move,
         )
         
-        self.boarding_rate = steps_per_second * boarding_rate
         self.entrance = (0, aisle_column)
         
         # Create airplane and assign passengers seats
@@ -79,6 +87,8 @@ class BoardingModel(mesa.Model):
             seats=getattr(self, f"seats_{seat_assignment_method}")(),
             queue=self.queue
         )
+        
+
         
         # Place first passenger in the entrance
         self.grid.place_agent(
@@ -90,7 +100,6 @@ class BoardingModel(mesa.Model):
         self.datacollector = mesa.DataCollector(
             model_reporters={"Queue Size": lambda model: len(model.queue)},
         )
-        
 
     def step(self):
         """Advance the model by one step.

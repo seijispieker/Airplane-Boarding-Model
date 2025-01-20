@@ -23,38 +23,45 @@ model_params = {
     "rows": 30,
     "columns": 7,
     "aisle_column": 3,
-    "passenger_count": {
-        "type": "InputText",
-        "value": 180,
-        "label": "Passenger Count",
-    },
+    "passenger_count": Slider(
+        label="Passenger Count",
+        value=180,
+        min=0,
+        max=180,
+        step=1,
+        dtype=int
+    ),
     "steps_per_second": Slider(
         label="Steps per Second",
         value=1,
         min=1,
         max=100,
         step=1,
+        dtype=int
     ),
-    "movement_speed": Slider(
+    "movement_speed_cells_per_second": Slider(
         label="Movement Speed (Cells per Second)",
-        value=1,
-        min=1,
-        max=10,
-        step=1,
+        value=1, # TODO: What value to fix to for this?
+        min=0,
+        max=5,
+        step=0.1,
+        dtype=float
     ),
-    "boarding_rate": Slider(
+    "boarding_rate_seconds": Slider(
         label="Boarding Rate (Seconds)",
-        value=2,
+        value=1, # TODO: What value to fix to for this?
         min=1,
         max=10,
-        step=1,
+        step=0.1,
+        dtype=float
     ),
-    "luggage_delay": Slider(
+    "luggage_delay_seconds": Slider(
         label="Luggage Delay (Seconds)",
-        value=2,
+        value=2, # TODO: What value to fix to for this?
         min=1,
         max=10,
-        step=1,
+        step=0.1,
+        dtype=float
     ),
     "seat_assignment_method": {
         "type": "Select",
@@ -63,11 +70,12 @@ model_params = {
         "label": "Seat Assignment Method",
     },
     "adherence": Slider(
-        label="adherence",
+        label="adherence (%)",
         value=95,
         min=0,
         max=100,
         step=1,
+        dtype=int
     ),
 }
 
