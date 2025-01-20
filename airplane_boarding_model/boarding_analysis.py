@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from .boarding_model import BoardingModel
 
-def simulate_boarding_time(passenger_count, runs=10, steps_per_second=1):
+def simulate_boarding_time(passenger_count, runs=10, steps_per_second=1, adherence=100):
     """
     Simulates the boarding process and calculates the average boarding time.
     
@@ -26,6 +26,7 @@ def simulate_boarding_time(passenger_count, runs=10, steps_per_second=1):
             luggage_delay=2,
             steps_per_second=steps_per_second,
             seat_assignment_method="back_to_front",
+            adherence=adherence,
         )
         time = 0
 
@@ -49,7 +50,7 @@ def plot_boarding_time_vs_occupancy():
 
     for count in passenger_counts:
         #changed 
-        boarding_times = simulate_boarding_time(count, runs=10, steps_per_second=steps_per_second)      # 10 runs per passenger count
+        boarding_times = simulate_boarding_time(count, runs=10, steps_per_second=steps_per_second, adherence=100)      # 10 runs per passenger count
         all_times.extend([(count, time) for time in boarding_times])
         average_times.append((count, sum(boarding_times) / len(boarding_times)))
 
