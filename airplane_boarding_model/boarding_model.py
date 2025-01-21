@@ -88,8 +88,6 @@ class BoardingModel(mesa.Model):
             queue=self.queue
         )
         
-
-        
         # Place first passenger in the entrance
         self.grid.place_agent(
             agent=self.queue.pop(),
