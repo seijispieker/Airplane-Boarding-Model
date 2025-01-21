@@ -40,7 +40,7 @@ model_params = {
     "boarding_method": {
         "type": "Select",
         "value": "back_to_front",
-        "values": ["back_to_front", "random"],
+        "values": ["back_to_front", "random", "segmented_random"],
         "label": "Boarding Method",
     },
     "seed": {
