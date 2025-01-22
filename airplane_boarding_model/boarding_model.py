@@ -109,7 +109,7 @@ class BoardingModel(mesa.Model):
             for left_seat, right_seat in zip(left_row, right_row):
                 back_to_front.append(left_seat)
                 back_to_front.append(right_seat)
-        back_to_front = self.padherence(back_to_front)
+        back_to_front = self.passenger_adherence(back_to_front)
         return back_to_front
     
     def seats_random(self) -> list[Seat]:
@@ -119,8 +119,12 @@ class BoardingModel(mesa.Model):
             A list of Seat objects in random order.
         """
         pass  # TODO: Implement this method
+    
+    def passenger_adherence(self, method_list):
+        '''
+        function that randomizes a given percentage of the "method list" (queue), thus simulating people that do not follow the method rules.
+        '''
 
-    def padherence(self, method_list):
         adherence= 100 - self.adherence
         amount_to_swap = round(len(method_list) * adherence / 100, 0)
         
@@ -138,3 +142,54 @@ class BoardingModel(mesa.Model):
                 method_list[random_index_list[j]], method_list[random_index_list[-j]-1] = method_list[random_index_list[-j]-1], method_list[random_index_list[j]]
             method_list[random_index_list[int((amount_to_swap-1) / 2)]] , method_list[random_index_list[0]] = method_list[random_index_list[0]], method_list[random_index_list[int((amount_to_swap-1) / 2)]] 
         return method_list
+    
+    def seats_segmented_random(self) -> list[Seat]:
+        '''
+        method for filling the airplane (which has been segmented into 3 parts) with random assignment in each segment
+        '''
+        # using the back to front as a base
+        layout = list(reversed(self.airplane.seat_map))
+        left_columns = [row[:self.airplane.aisle_column] for row in layout]
+        right_columns = [list(reversed(row[self.airplane.aisle_column + 1:])) for row in layout]
+        back_to_front = []
+        
+        for left_row, right_row in zip(left_columns, right_columns):
+            for left_seat, right_seat in zip(left_row, right_row):
+                back_to_front.append(left_seat)
+                back_to_front.append(right_seat)
+    
+        # splitting back to front into 3 segments
+        segments = 3 
+
+        
+        method_list = []
+        if self.airplane.seat_rows % segments == 0: 
+            seg_length = len(back_to_front) / segments
+
+            seats_count = 0
+            list_counter = 0
+            for _ in range(segments):
+                method_list.append([])
+
+                segment_counter = 0
+                while segment_counter < seg_length:
+                    method_list[list_counter].append(back_to_front[seats_count])
+                    segment_counter += 1 
+                    seats_count += 1
+
+                list_counter += 1
+
+            list_counter = 0
+            for _ in range(segments):
+                self.random.shuffle(method_list[list_counter])
+                list_counter += 1
+            
+            flatten = lambda xss: [x for xs in xss for x in xs]
+            method_list = flatten(method_list)
+            method_list = self.passenger_adherence(method_list)
+            return method_list
+    
+        else: 
+            print("plane not able to be segmented (To implement)")
+
+
