@@ -4,6 +4,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import mesa
+import mesa.agent
+import random
 
 from .airbus_a320 import AirbusA320
 from .passenger import Passenger
@@ -17,8 +19,8 @@ class BoardingModel(mesa.Model):
     
     Attributes:
         cell_width: The width of a grid cell in meters.
+        steps_per_second: The number of simulation steps per second.
         aisle_steps_per_move: The number of steps to move one cell in the aisle.
-        luggage_delay: The number of steps to wait for storing luggage.
         airplane: An AirbusA320 object representing the airplane.
         grid: A SingleGrid object representing the airplane grid.
         queue: A list of Passenger objects representing the queue of passengers.
@@ -31,7 +33,6 @@ class BoardingModel(mesa.Model):
         seed: int = 42,
         steps_per_second: int = 2,
         aisle_speed: float = 0.8, # meters per second
-        luggage_delay_seconds: float = 2,
         occupancy: float = 0.85,
         seat_assignment_method: str = "back_to_front",
         conformance: int = 95,
@@ -42,31 +43,53 @@ class BoardingModel(mesa.Model):
             seed: The random seed for the model.
             steps_per_second: The number of simulation steps per second.
             aisle_speed: The speed of passengers in the aisle in meters per second.
-            luggage_delay_seconds: The number of seconds to wait for storing luggage.
             occupancy: The percentage of occupied seats.
             seat_assignment_method: The method for assigning seats to passengers.
             conformance: The percentage of passengers following the assigned order.
         """
+        seed = int(seed)
         super().__init__(seed=seed)
         
         self.cell_width = 0.4 # meters
+        self.steps_per_second = steps_per_second
         self.aisle_steps_per_move = round(aisle_speed / self.cell_width * steps_per_second)
-        self.luggage_delay = round(steps_per_second * luggage_delay_seconds)
         
         self.airplane = AirbusA320()
         self.grid = mesa.space.SingleGrid(
             width=self.airplane.grid_width,
             height=self.airplane.grid_height,
             torus=False,
-        )      
-          
-        self.queue = Passenger.create_agents(
-            model=self,
-            n=round(self.airplane.number_of_seats * occupancy),
-            aisle_steps_per_move=self.aisle_steps_per_move,
-            luggage_delay=self.luggage_delay,
         )    
-            
+        
+        number_of_passengers = round(self.airplane.number_of_seats * occupancy)
+        luggage_sample = self.random.choices(
+            population=[1, 2, 3],
+            weights=[0.6, 0.3, 0.1],
+            k=number_of_passengers
+        )
+        single_luggage = Passenger.create_agents(
+            model=self,
+            n=luggage_sample.count(1),
+            aisle_steps_per_move=self.aisle_steps_per_move,
+            luggage_items=1
+        )
+        two_luggage = Passenger.create_agents(
+            model=self,
+            n=luggage_sample.count(2),
+            aisle_steps_per_move=self.aisle_steps_per_move,
+            luggage_items=2
+        )
+        three_luggage = Passenger.create_agents(
+            model=self,
+            n=luggage_sample.count(3),
+            aisle_steps_per_move=self.aisle_steps_per_move,
+            luggage_items=3
+        )
+        passengers = mesa.agent.AgentSet(single_luggage | two_luggage | three_luggage,
+                                         random=self.random)
+        assert len(passengers) == number_of_passengers
+        self.queue = passengers.shuffle(True)
+          
         self.adherence = conformance
         self.airplane.assign_passengers(
             seats=getattr(self, f"seats_{seat_assignment_method}")(),

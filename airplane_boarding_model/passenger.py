@@ -15,7 +15,7 @@ class Passenger(mesa.Agent):
     
     Attributes:
         aisle_steps_per_move: The number of steps to move one cell in the aisle.
-        luggage_delay: The number of steps to wait for storing luggage.
+        luggage_time: The number of steps to store luggage.
         assigned_seat: The Seat assigned to the passenger.
         seated: True if the passenger is seated, False otherwise.
         last_move: The number of steps since the last move.
@@ -25,14 +25,16 @@ class Passenger(mesa.Agent):
         self,
         model: BoardingModel,
         aisle_steps_per_move: int,
-        luggage_delay: int,
+        luggage_items: int = 1,
         assigned_seat: Seat = None,
         seated: bool = False,
     ):
         """Initialize a Passenger object."""
         super().__init__(model)
         self.aisle_steps_per_move = aisle_steps_per_move
-        self.luggage_delay = luggage_delay
+        # alpha and beta based on Schultz 2018:
+        single_luggage_time = self.model.random.weibullvariate(alpha=16, beta=1.7)
+        self.luggage_time = round(luggage_items * single_luggage_time * model.steps_per_second)
         self.assigned_seat = assigned_seat
         self.seated = seated
         self.last_move = aisle_steps_per_move
@@ -47,8 +49,8 @@ class Passenger(mesa.Agent):
         # If in the correct row
         if self.pos[0] == self.assigned_seat.grid_coordinate[0]:
             # If waiting to store luggage
-            if self.luggage_delay > 0:
-                self.luggage_delay -= 1
+            if self.luggage_time > 0:
+                self.luggage_time -= 1
                 return
             
             # If in the correct column

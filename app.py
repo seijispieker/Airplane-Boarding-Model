@@ -36,14 +36,6 @@ model_params = {
         step=0.1,
         dtype=float
     ),
-    "luggage_delay_seconds": Slider(
-        label="Luggage Delay (s)",
-        value=2, # TODO: What value to fix to for this?
-        min=1,
-        max=10,
-        step=0.1,
-        dtype=float
-    ),
     "occupancy": Slider(
         label="Occupancy (0-1)",
         value=0.85,
