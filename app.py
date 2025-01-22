@@ -20,47 +20,36 @@ model_params = {
         "value": 42,
         "label": "Random Seed",
     },
-    "rows": 30,
-    "columns": 7,
-    "aisle_column": 3,
-    "passenger_count": Slider(
-        label="Passenger Count",
-        value=180,
-        min=0,
-        max=180,
-        step=1,
-        dtype=int
-    ),
     "steps_per_second": Slider(
         label="Steps per Second",
-        value=1,
+        value=2,
         min=1,
         max=100,
         step=1,
         dtype=int
     ),
-    "movement_speed_cells_per_second": Slider(
-        label="Movement Speed (Cells per Second)",
-        value=1, # TODO: What value to fix to for this?
+    "aisle_speed": Slider(
+        label="Aisle Speed (m/s)",
+        value=0.8,
         min=0,
-        max=5,
-        step=0.1,
-        dtype=float
-    ),
-    "boarding_rate_seconds": Slider(
-        label="Boarding Rate (Seconds)",
-        value=1, # TODO: What value to fix to for this?
-        min=1,
-        max=10,
+        max=2,
         step=0.1,
         dtype=float
     ),
     "luggage_delay_seconds": Slider(
-        label="Luggage Delay (Seconds)",
+        label="Luggage Delay (s)",
         value=2, # TODO: What value to fix to for this?
         min=1,
         max=10,
         step=0.1,
+        dtype=float
+    ),
+    "occupancy": Slider(
+        label="Occupancy (0-1)",
+        value=0.85,
+        min=0,
+        max=1,
+        step=0.05,
         dtype=float
     ),
     "seat_assignment_method": {
@@ -69,8 +58,8 @@ model_params = {
         "values": ["back_to_front", "random"],
         "label": "Seat Assignment Method",
     },
-    "adherence": Slider(
-        label="adherence (%)",
+    "conformance": Slider(
+        label="conformance (%)",
         value=95,
         min=0,
         max=100,
@@ -98,7 +87,7 @@ def passenger_potrayel(passenger: Passenger):
 
 
 def post_process_space(ax: plt.Axes):
-    ax.set_xticks(range(model_params["rows"]))
+    pass
 
 
 space_component = make_space_component(

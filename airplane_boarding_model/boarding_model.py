@@ -5,120 +5,92 @@ from typing import TYPE_CHECKING
 
 import mesa
 
-from .airplane import Airplane
+from .airbus_a320 import AirbusA320
 from .passenger import Passenger
 
 if TYPE_CHECKING:
-    from .airplane import Seat
+    from .airbus_a320 import Seat
 
 
 class BoardingModel(mesa.Model):
-    """A model for simulating the boarding process of an airplane.
+    """A class for modeling the boarding process of an airplane.
     
     Attributes:
-        seed: The random seed for the model.
-        grid: SingleGrid object as an environment for the model.
-        queue: Agentset of Passenger objects waiting to board.
-        boarding_rate: The number of steps between boarding new passengers.
-        entrance: The position of the entrance to the airplane.
-        airplane: Airplane object containing the layout of the airplane.
-        last_boarded: The number of steps since the last passenger was boarded.
-        datacollector: DataCollector object for collecting data.
+        cell_width: The width of a grid cell in meters.
+        aisle_steps_per_move: The number of steps to move one cell in the aisle.
+        luggage_delay: The number of steps to wait for storing luggage.
+        airplane: An AirbusA320 object representing the airplane.
+        grid: A SingleGrid object representing the airplane grid.
+        queue: A list of Passenger objects representing the queue of passengers.
+        adherence: The percentage of passengers following the assigned order.
+        datacollector: A DataCollector object for collecting data.
     """
     
     def __init__(
         self,
         seed: int = 42,
-        rows: int = 30,
-        columns: int = 7,
-        aisle_column: int = 3,
-        passenger_count: int = 180,
-        steps_per_second: int = 1,
-        movement_speed_cells_per_second: float = 1,
-        boarding_rate_seconds: float = 1,
+        steps_per_second: int = 2,
+        aisle_speed: float = 0.8, # meters per second
         luggage_delay_seconds: float = 2,
+        occupancy: float = 0.85,
         seat_assignment_method: str = "back_to_front",
-        adherence: int = 95,
+        conformance: int = 95,
     ):
-        """Create a new boarding model with the given parameters.
+        """Initialize a BoardingModel object.
         
         Args:
             seed: The random seed for the model.
-            rows: The number of rows in the airplane.
-            columns: The number of columns per row including aisle.
-            aisle_column: The column number of the aisle.
-            passenger_count: The number of passengers to board.
-            movement_speed: The number of cells a passenger moves per second.
-            boarding_rate: The number of seconds between boarding new passengers.
-            luggage_delay: The number of seconds a passenger waits to store luggage.
-            seat_assignment_method: The method used to assign passengers to
-                seats given a queue of passengers.
+            steps_per_second: The number of simulation steps per second.
+            aisle_speed: The speed of passengers in the aisle in meters per second.
+            luggage_delay_seconds: The number of seconds to wait for storing luggage.
+            occupancy: The percentage of occupied seats.
+            seat_assignment_method: The method for assigning seats to passengers.
+            conformance: The percentage of passengers following the assigned order.
         """
-        print("Initializing new Boarding Model")
         super().__init__(seed=seed)
         
-        self.grid = mesa.space.SingleGrid(
-            width=rows,
-            height=columns,
-            torus=False,
-        )
-        
-        self.steps_per_move = round(steps_per_second * movement_speed_cells_per_second)
+        self.cell_width = 0.4 # meters
+        self.aisle_steps_per_move = round(aisle_speed / self.cell_width * steps_per_second)
         self.luggage_delay = round(steps_per_second * luggage_delay_seconds)
-        self.boarding_rate = round(steps_per_second * boarding_rate_seconds)
         
-        print(f"Steps per move: {self.steps_per_move}")
-        print(f"Luggage delay: {self.luggage_delay} steps")
-        print(f"Boarding rate: {self.boarding_rate} steps")
-        
-        self.adherence = adherence
+        self.airplane = AirbusA320()
+        self.grid = mesa.space.SingleGrid(
+            width=self.airplane.grid_width,
+            height=self.airplane.grid_height,
+            torus=False,
+        )      
+          
         self.queue = Passenger.create_agents(
             model=self,
-            n=int(passenger_count),
+            n=round(self.airplane.number_of_seats * occupancy),
+            aisle_steps_per_move=self.aisle_steps_per_move,
             luggage_delay=self.luggage_delay,
-            steps_per_move=self.steps_per_move,
-        )
-        
-        self.entrance = (0, aisle_column)
-        
-        # Create airplane and assign passengers seats
-        self.airplane = Airplane(rows, columns, aisle_column)
+        )    
+            
+        self.adherence = conformance
         self.airplane.assign_passengers(
             seats=getattr(self, f"seats_{seat_assignment_method}")(),
             queue=self.queue
         )
-        
 
-        
         # Place first passenger in the entrance
         self.grid.place_agent(
             agent=self.queue.pop(),
-            pos=self.entrance
+            pos=self.airplane.entrance
         )
-        self.last_boarded = 1
         
         self.datacollector = mesa.DataCollector(
             model_reporters={"Queue Size": lambda model: len(model.queue)},
         )
 
     def step(self):
-        """Advance the model by one step.
-        
-        The model advances by boarding new passengers according to the boarding
-        rate and moving all agents one step.
-        """
-        # Board new passengers according to boarding rate
-        if self.last_boarded >= self.boarding_rate:
-            # Check if there are passengers in the queue and the entrance is free
-            if self.queue and self.grid.is_cell_empty(self.entrance):
-                self.grid.place_agent(
-                    agent=self.queue.pop(),
-                    pos=self.entrance
-                )
-                self.last_boarded = 1
-        else:
-            self.last_boarded += 1
-        
+        # Check if there are passengers in the queue and the entrance is free
+        if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
+            self.grid.place_agent(
+                agent=self.queue.pop(),
+                pos=self.airplane.entrance
+            )
+
         self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
                     
@@ -128,7 +100,7 @@ class BoardingModel(mesa.Model):
         Returns:
             A list of Seat objects in back to front order.
         """
-        layout = list(reversed(self.airplane.layout))
+        layout = list(reversed(self.airplane.seat_map))
         left_columns = [row[:self.airplane.aisle_column] for row in layout]
         right_columns = [list(reversed(row[self.airplane.aisle_column + 1:])) for row in layout]
         back_to_front = []
