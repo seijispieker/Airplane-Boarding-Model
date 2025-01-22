@@ -6,44 +6,36 @@ from typing import TYPE_CHECKING
 import mesa
 
 if TYPE_CHECKING:
-    from .airplane import Seat
+    from .airbus_a320 import Seat
     from .boarding_model import BoardingModel
 
 
 class Passenger(mesa.Agent):
-    """A passenger of an airplane.
+    """A class for modeling a passenger of an airplane.
     
     Attributes:
-        assigned_seat: The Seat object assigned to the passenger.
-        steps_per_move: The number of steps it takes for the passenger to move.
-        luggage_delay: The number of steps a passenger waits to store luggage.
-        seated: Whether the passenger is seated.
-        last_move: The number of steps since the passenger last moved.
+        aisle_steps_per_move: The number of steps to move one cell in the aisle.
+        luggage_delay: The number of steps to wait for storing luggage.
+        assigned_seat: The Seat assigned to the passenger.
+        seated: True if the passenger is seated, False otherwise.
+        last_move: The number of steps since the last move.
     """
     
     def __init__(
         self,
         model: BoardingModel,
+        aisle_steps_per_move: int,
         luggage_delay: int,
-        steps_per_move: int,
         assigned_seat: Seat = None,
         seated: bool = False,
     ):
-        """Create a new passenger with the given parameters.
-        
-        Args:
-            model: The BoardingModel object containing the passenger.
-            luggage_delay: The number of steps a passenger waits to store luggage.
-            steps_per_move: The number of steps it takes for the passenger to move.
-            assigned_seat: The Seat object assigned to the passenger.
-            seated: Whether the passenger is seated.
-        """
+        """Initialize a Passenger object."""
         super().__init__(model)
+        self.aisle_steps_per_move = aisle_steps_per_move
         self.luggage_delay = luggage_delay
-        self.steps_per_move = steps_per_move
         self.assigned_seat = assigned_seat
         self.seated = seated
-        self.last_move = steps_per_move
+        self.last_move = aisle_steps_per_move
         
     def step(self):
         """Advance the passenger by one step."""
@@ -53,17 +45,17 @@ class Passenger(mesa.Agent):
             return
         
         # If in the correct row
-        if self.pos[0] == self.assigned_seat.row:
+        if self.pos[0] == self.assigned_seat.grid_coordinate[0]:
             # If waiting to store luggage
             if self.luggage_delay > 0:
                 self.luggage_delay -= 1
                 return
             
             # If in the correct column
-            if self.pos[1] == self.assigned_seat.column:
+            if self.pos[1] == self.assigned_seat.grid_coordinate[1]:
                 self.seated = True
             else:
-                direction = 1 if self.assigned_seat.column > self.pos[1] else -1
+                direction = 1 if self.assigned_seat.grid_coordinate[1] > self.pos[1] else -1
                 self.move(drow=0, dcol=direction)
         else:
             self.move(drow=1, dcol=0)
@@ -79,7 +71,7 @@ class Passenger(mesa.Agent):
         """
         target = (self.pos[0] + drow, self.pos[1] + dcol)
         
-        if self.model.grid.is_cell_empty(target) and self.last_move >= self.steps_per_move:
+        if self.model.grid.is_cell_empty(target) and self.last_move >= self.aisle_steps_per_move:
             self.model.grid.move_agent(self, target)
             self.last_move = 0
             return True

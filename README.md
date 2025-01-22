@@ -16,3 +16,7 @@ To launch the interactive server, run:
 ```
     $ solara run app.py
 ```
+
+## Grid
+
+![Grid-based simulation environment - Airbus A320 as reference](Grid-based%20simulation%20environment%20-%20Airbus%20A320%20as%20reference.png)
