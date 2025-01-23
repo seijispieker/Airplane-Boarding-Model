@@ -61,11 +61,11 @@ class BoardingModel(mesa.Model):
             torus=False,
         )    
         
-        number_of_passengers = round(self.airplane.number_of_seats * occupancy)
+        self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
         luggage_sample = self.random.choices(
             population=[1, 2, 3],
             weights=[0.6, 0.3, 0.1],
-            k=number_of_passengers
+            k=self.number_of_passengers 
         )
         single_luggage = Passenger.create_agents(
             model=self,
@@ -87,13 +87,13 @@ class BoardingModel(mesa.Model):
         )
         passengers = mesa.agent.AgentSet(single_luggage | two_luggage | three_luggage,
                                          random=self.random)
-        assert len(passengers) == number_of_passengers
+        assert len(passengers) == self.number_of_passengers
         self.queue = passengers.shuffle(True)
           
         self.adherence = conformance
         # TODO: seat_assignment_method with input number of seats
         self.assigned_seats = getattr(self, f"seats_{seat_assignment_method}")()
-        self.assigned_seats = self.assigned_seats[:number_of_passengers]
+        self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
         assert len(self.assigned_seats) == len(self.queue)
         self.airplane.assign_passengers(
             seats=self.assigned_seats,
@@ -175,8 +175,8 @@ class BoardingModel(mesa.Model):
 
     def seats_segmented_random(self) -> list[Seat]:
         segments = 3
-        passengers = self.passenger_count
-        rows = self.rows 
+        passengers = self.number_of_passengers
+        rows = self.airplane.seat_rows 
         passenger_count_per_segment = []
 
         #--first we determine the amount of passengers that will inhabit each segment
@@ -200,7 +200,7 @@ class BoardingModel(mesa.Model):
                     passenger_count_per_segment.append(int(seg_length))
         
         #-- secondly we determine the length in rows of each segment
-        rows = self.rows 
+        rows = self.airplane.seat_rows 
         extra_rows = 0
         rows_list = []
 
@@ -221,7 +221,7 @@ class BoardingModel(mesa.Model):
                     rows_list.append([rows_per_segment])    
         
         #-- thirdly we split the airlplane layout into the respective segments
-        layout = self.airplane.layout
+        layout = self.airplane.seat_map
         segmented_layout = []
         i = 0
         row_i = 0
@@ -245,7 +245,7 @@ class BoardingModel(mesa.Model):
             
             random_segmented_seats.append([])
             while seats_picked < passenger_count_per_segment[i]:
-                random_seat = randint(0, segment - 1)
+                random_seat = self.random.randint(0, segment - 1)
                 if segmented_layout[i][random_seat] not in random_segmented_seats[i]:
                     random_segmented_seats[i].append(segmented_layout[i][random_seat])
                     seats_picked += 1                               
@@ -258,9 +258,9 @@ class BoardingModel(mesa.Model):
 
     def seats_outside_in(self) -> list[Seat]:
         segments = 3 # window, middle seat, aile seat
-        passengers = self.passenger_count
+        passengers = self.number_of_passengers
         passenger_count_per_segment = []
-        seats_per_segment = self.rows * self.columns / segments
+        seats_per_segment = self.airplane.seat_rows * self.airplane.columns / segments
 
         #determening how filled the segments are
         i = 0
@@ -273,7 +273,7 @@ class BoardingModel(mesa.Model):
             i += 1
 
         #creating seat layout for the outside in method
-        layout = self.airplane.layout
+        layout = self.airplane.seat_map
         segmented_layout = [[],[],[]]
         
         
