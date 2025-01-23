@@ -56,6 +56,7 @@ class Passenger(mesa.Agent):
             # If in the correct column
             if self.pos[1] == self.assigned_seat.grid_coordinate[1]:
                 self.seated = True
+                self.assigned_seat.occupied = True
             else:
                 direction = 1 if self.assigned_seat.grid_coordinate[1] > self.pos[1] else -1
                 self.move(drow=0, dcol=direction)

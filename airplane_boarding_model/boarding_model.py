@@ -24,6 +24,7 @@ class BoardingModel(mesa.Model):
         grid: A SingleGrid object representing the airplane grid.
         queue: A list of Passenger objects representing the queue of passengers.
         adherence: The percentage of passengers following the assigned order.
+        assigned_seats: A list of Seat objects representing the assigned seats.
         datacollector: A DataCollector object for collecting data.
     """
     
@@ -90,8 +91,12 @@ class BoardingModel(mesa.Model):
         self.queue = passengers.shuffle(True)
           
         self.adherence = conformance
+        # TODO: seat_assignment_method with input number of seats
+        self.assigned_seats = getattr(self, f"seats_{seat_assignment_method}")()
+        self.assigned_seats = self.assigned_seats[:number_of_passengers]
+        assert len(self.assigned_seats) == len(self.queue)
         self.airplane.assign_passengers(
-            seats=getattr(self, f"seats_{seat_assignment_method}")(),
+            seats=self.assigned_seats,
             queue=self.queue
         )
 
@@ -102,7 +107,7 @@ class BoardingModel(mesa.Model):
         )
         
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Queue Size": lambda model: len(model.queue)},
+            model_reporters={"Time (s)": lambda model: model.steps * model.steps_per_second},
         )
 
     def step(self):
@@ -115,6 +120,9 @@ class BoardingModel(mesa.Model):
 
         self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
+
+        if all(seat.occupied for seat in self.assigned_seats):
+            self.running = False
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.

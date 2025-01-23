@@ -1,48 +1,22 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from .boarding_model import BoardingModel
+import pandas as pd
 
-def simulate_boarding_time(passenger_count, runs=10, steps_per_second=1, adherence=100):
-    """
-    Simulates the boarding process and calculates the average boarding time.
+
+def main():
+    results_df = pd.read_csv("batch_run_results.csv")
     
-    Args:
-        passenger_count: Number of passengers on the plane.
-        runs: Number of simulation runs to average results.
-        steps_per_second: Number of steps per second in the simulation.
-        
-    Returns:
-        The average boarding time (in minutes) over the simulation runs.
-    """
-    times = []  
+    plot_occupancy_boarding_time(results_df)
 
-    for run in range(runs):
-        model = BoardingModel(
-            rows=30,
-            columns=7,
-            aisle_column=3,
-            passenger_count=passenger_count,
-            boarding_rate_seconds=1,
-            luggage_delay_seconds=2,
-            steps_per_second=steps_per_second,
-            seat_assignment_method="back_to_front",
-            adherence=adherence,
-        )
-        time = 0
-
-        while model.queue or any(not p.seated for p in model.grid.agents):
-            model.step()
-            time += 1
-
-        times.append((time / steps_per_second) / 60)  # Convert to minutes
-
-        return times 
     
-def plot_boarding_time_vs_occupancy():
+def plot_occupancy_boarding_time(results_df: pd.DataFrame):
     """
     Plots the boarding time versus the passenger occupancy of the plane, 
     running an amount of simulations for each occupancy level.
     """
+    
+    # TODO: Implement this function
+    
     passenger_counts = range(29, 181, 10)
     all_times = []
     average_times = []
@@ -106,12 +80,8 @@ def plot_interarrival_distribution(inter_arrival_times, mean_rate):
     plt.grid(True)
     plt.show()
 
-if __name__ == "__main__":
-    np.random.seed(42)
-    mean_rate = 5
-    inter_arrival_times = np.random.exponential(mean_rate, size=100)
 
-    plot_boarding_time_vs_occupancy()
-    plot_interarrival_distribution(inter_arrival_times, mean_rate)
+if __name__ == "__main__":
+    main()
 
 
