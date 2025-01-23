@@ -160,71 +160,6 @@ class BoardingModel(mesa.Model):
                 method_list[random_index_list[j]], method_list[random_index_list[-j]-1] = method_list[random_index_list[-j]-1], method_list[random_index_list[j]]
             method_list[random_index_list[int((amount_to_swap-1) / 2)]] , method_list[random_index_list[0]] = method_list[random_index_list[0]], method_list[random_index_list[int((amount_to_swap-1) / 2)]] 
         return method_list
-    
-    def seats_segmented_random_old(self) -> list[Seat]:
-        '''
-        method for filling the airplane (which has been segmented into 3 parts) with random assignment in each segment
-        '''
-        # using the back to front as a base
-        layout = list(reversed(self.airplane.layout))
-        print(self.airplane.layout)
-        left_columns = [row[:self.airplane.aisle_column] for row in layout]
-        right_columns = [list(reversed(row[self.airplane.aisle_column + 1:])) for row in layout]
-        back_to_front = []
-        
-        for left_row, right_row in zip(left_columns, right_columns):
-            for left_seat, right_seat in zip(left_row, right_row):
-                back_to_front.append(left_seat)
-                back_to_front.append(right_seat)
-        
-        # splitting back to front into 3 segments
-        segments = 3 
-        
-        method_list = []
-        if self.rows % segments == 0: 
-            seg_length = len(back_to_front) / segments
-
-            seats_count = 0
-            list_counter = 0
-            for _ in range(segments):
-                method_list.append([])
-
-                segment_counter = 0
-                while segment_counter < seg_length:
-                    method_list[list_counter].append(back_to_front[seats_count])
-                    segment_counter += 1 
-                    seats_count += 1
-
-                list_counter += 1
-
-            list_counter = 0
-            for _ in range(segments):
-                shuffle(method_list[list_counter])
-                list_counter += 1
-            
-            flatten = lambda xss: [x for xs in xss for x in xs]
-            method_list = flatten(method_list)
-            method_list = self.passenger_adherence(method_list)
-            
-            return method_list
-    
-        else: # if segments cant be equally split, devidie the extra rows over the first segments
-            #determining the amount of extra rows
-            rows = self.rows 
-            extra_rows = 0
-            while rows % segments == 0:
-                rows - 1 
-                extra_rows += 1 
-            
-            #adding the extra rows to the segments
-            rows_in_segments = []
-            for _ in range(segments):
-                if extra_rows > 0:
-                    rows_in_segments.append(rows + 1)
-                    extra_rows -= 1
-                else: rows_in_segments.append(rows)
-            print("plane not able to be segmented (To implement)")
-    
 
     def seats_segmented_random(self) -> list[Seat]:
         segments = 3
@@ -308,6 +243,39 @@ class BoardingModel(mesa.Model):
         method_list = flatten(random_segmented_seats)
         method_list = self.passenger_adherence(method_list)
         return reversed(method_list)
+
+    def seats_outside_in(self) -> list[Seat]:
+        segments = 3 # window, middle seat, aile seat
+        passengers = self.passenger_count
+        passenger_count_per_segment = []
+        seats_per_segment = self.rows * self.columns / segments
+
+        #determening how filled the segments are
+        i = 0
+        while passengers > 0:
+            assigned_seats = 0
+            while assigned_seats > seats_per_segment:
+                passengers -= 1
+                assigned_seats += 1
+            passenger_count_per_segment.append([assigned_seats])
+            i += 1
+
+        #creating seat layout for the outside in method
+        layout = self.airplane.layout
+        segmented_layout = [[],[],[]]
+        
+        
+        i = 0
+        left = 0
+        right = -1
+        for _ in range(segments):
+            for row in layout:
+                segmented_layout[i].append(row[left], row[right])
+            left += 1
+            right -= 1
+        print(segmented_layout)
+                
+        
         
         
         
