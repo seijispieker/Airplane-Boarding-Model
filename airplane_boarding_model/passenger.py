@@ -38,6 +38,7 @@ class Passenger(mesa.Agent):
         self.assigned_seat = assigned_seat
         self.seated = seated
         self.last_move = aisle_steps_per_move
+        self.arrival_time = 0
         
     def step(self):
         """Advance the passenger by one step."""

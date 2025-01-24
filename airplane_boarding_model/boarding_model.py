@@ -90,32 +90,32 @@ class BoardingModel(mesa.Model):
                                          random=self.random)   # Changed to self.passengers
         assert len(self.passengers) == number_of_passengers  
 
-        self.current_time = 0 # Added
-
-        # Generate inter-arrival times based on exponential distribution, 5 should be validated (3.7 with lambda = 1)
-        inter_arrival_times = [self.random.expovariate(1 / (steps_per_second * 5)) for _ in range(number_of_passengers)]
-        arrival_timestamps = list(map(int, np.cumsum(inter_arrival_times)))
-
+        # Schultz 2018:
+        lambd = 1 / (steps_per_second * 3.7)
+        inter_arrival_times = [self.random.expovariate(lambd) for _ in range(number_of_passengers - 1)]
+        arrival_timestamps = list(map(round, np.cumsum(inter_arrival_times)))
+        arrival_timestamps.insert(0, 0)
+        
         # Assign timestamps to passengers
         for passenger, timestamp in zip(self.passengers, arrival_timestamps):
             passenger.arrival_time = timestamp
 
-        # Initialially empty queue
-        self.queue = sorted(self.passengers, key=lambda p: p.arrival_time)   
+        self.passengers.sort(key=lambda p: p.arrival_time)
+        self.queue = []
           
         self.adherence = conformance
         # TODO: seat_assignment_method with input number of seats
         self.assigned_seats = getattr(self, f"seats_{seat_assignment_method}")()
         self.assigned_seats = self.assigned_seats[:number_of_passengers]
-        assert len(self.assigned_seats) == len(self.queue)
+        assert len(self.assigned_seats) == len(self.passengers)
         self.airplane.assign_passengers(
             seats=self.assigned_seats,
-            queue=self.queue
+            passengers=self.passengers
         )
 
         # Place first passenger in the entrance
         self.grid.place_agent(
-            agent=self.queue.pop(),
+            agent=self.passengers.pop(),
             pos=self.airplane.entrance
         )
         
@@ -125,38 +125,22 @@ class BoardingModel(mesa.Model):
 
     def step(self):
         """Advance the model by one step."""
-        self.current_time += 1
-        passengers_to_remove = []
-
-        #Debug
-        print('Step:', self.current_time)
-        print('Queue size before:', len(self.queue), 'Passenger remaining:', len(self.passengers))
-
         # Add passengers to queue based on arrival time
-        for passenger in self.passengers:
-            if passenger.arrival_time <= self.current_time:
+        arrived_at_queue = self.passengers.select(lambda p: p.arrival_time == self.steps)
+        
+        if arrived_at_queue:
+            for passenger in arrived_at_queue:
                 self.queue.append(passenger)
-                passengers_to_remove.append(passenger)
-
-        for passenger in passengers_to_remove:
-            self.passengers.remove(passenger)
+                self.passengers.remove(passenger)
 
         #Debug
         print('Queue size after:', len(self.queue), 'Passenger remaining:', len(self.passengers))
-
-        # Check if there are passengers in the queue and the entrance is free
-        # Original code:
-        #if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
-            #self.grid.place_agent(
-                #agent=self.queue.pop(0),
-                #pos=self.airplane.entrance
-            #)
 
         # New code
         if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
             passenger = self.queue.pop(0)
             self.grid.place_agent(agent=passenger, pos=self.airplane.entrance)
-            print(f"Passenger {passenger.unique_id} entered the plane at time {self.current_time}")
+            print(f"Passenger {passenger.unique_id} entered the plane at timestep {self.steps}")
 
         # Debug
         occupied_seats = sum(seat.occupied for seat in self.assigned_seats)

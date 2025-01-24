@@ -94,9 +94,9 @@ class AirbusA320:
     def assign_passengers(
         self,
         seats: list[Seat],
-        queue: mesa.agent.AgentSet[Passenger]
+        passengers: mesa.agent.AgentSet[Passenger]
     ):
         """Assign passengers to seats."""
-        for seat, passenger in zip(seats, queue):
+        for seat, passenger in zip(seats, passengers):
             seat.assigned_passenger = passenger
             passenger.assigned_seat = seat
