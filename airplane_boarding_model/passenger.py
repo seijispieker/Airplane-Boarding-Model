@@ -78,7 +78,7 @@ class Passenger(mesa.Agent):
             else:
                 self.move_to_target()
         elif self.shuffle_into_seat:
-            # print(f"Shuffling into seat s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
+            # print(f"Shuffling into seat - s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
             if self.at_target():
                 self.shuffle_into_seat = False
                 self.seated = True
@@ -89,7 +89,7 @@ class Passenger(mesa.Agent):
             else:
                 self.move_to_target()
         elif self.waiting_for_shuffling:
-            # print(f"Waiting for shuffling s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
+            # print(f"Waiting for shuffling - s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
             # print(self.passengers_shuffling)
             if self.shuffle_precedence and self.all_passengers_shuffling_in_aisle():
                 self.waiting_for_shuffling = False
@@ -100,7 +100,7 @@ class Passenger(mesa.Agent):
                 self.waiting_for_shuffling = False
                 self.shuffle_into_seat = True
                 self.move_to_target()
-        # No shuffling
+        # No seat shuffle situation
         # If at seat row
         elif self.pos[0] == seat_x:
             # If at seat column
@@ -136,52 +136,13 @@ class Passenger(mesa.Agent):
         elif not self.model.frozen_aisle_cells[self.pos[0] + 1]:
             self.move_to_target()
             
-    def get_blocking_passengers(self) -> list[Passenger]:
-        """Return a list of passengers blocking the row.
-        
-        Returns:
-            A list of passengers blocking the row. Empty if no blocking
-            passengers.
-        """
-        seat_x, seat_y = self.assigned_seat.grid_coordinate
-        aisle_column = self.model.airplane.aisle_column
-        
-        y_dir = 1 if seat_y > aisle_column else -1
-        
-        blocking_y_coords = range(
-            aisle_column + y_dir,
-            seat_y,
-            y_dir
-        )
-        blocking_positions = [(seat_x, y) for y in blocking_y_coords]
-            
-        return self.model.grid.get_cell_list_contents(blocking_positions)
-        
-    def all_passengers_shuffling_out_of_aisle(self) -> bool:
-        aisle_column = self.model.airplane.aisle_column
-        return all(passenger.pos[1] != aisle_column for passenger in self.passengers_shuffling)
-    
-    def all_passengers_shuffling_in_aisle(self) -> bool:
-        aisle_column = self.model.airplane.aisle_column
-        return all(passenger.pos[1] == aisle_column for passenger in self.passengers_shuffling)
-    
     def at_target(self) -> bool:
+        """Check if the passenger is at the target position."""
         return self.pos == (self.target_x, self.target_y)
     
-    def waiting_position(self) -> tuple[int, int]:
-        _, seat_y = self.assigned_seat.grid_coordinate
-        aisle_column = self.model.airplane.aisle_column
-        y_dir = -1 if seat_y > aisle_column else 1
-        
-        target = (self.pos[0], self.pos[1] + y_dir)
-        # If opposite side of aisle is free
-        if self.model.grid.is_cell_empty(target):
-            return target
-        else:
-            return (self.pos[0] - 1, self.pos[1])
-        
     def move_to_target(self) -> bool:
-        """Move to target.
+        """Move to target. Movenment is prioritized in x direction when in the
+        aisle and in y direction when in the assigned seat row.
         
         Returns:
             True if the passenger moved, False if move not possible.
@@ -214,3 +175,44 @@ class Passenger(mesa.Agent):
             return True
         else:
             return False
+        
+    def all_passengers_shuffling_out_of_aisle(self) -> bool:
+        aisle_column = self.model.airplane.aisle_column
+        return all(passenger.pos[1] != aisle_column for passenger in self.passengers_shuffling)
+    
+    def all_passengers_shuffling_in_aisle(self) -> bool:
+        aisle_column = self.model.airplane.aisle_column
+        return all(passenger.pos[1] == aisle_column for passenger in self.passengers_shuffling)
+            
+    def get_blocking_passengers(self) -> list[Passenger]:
+        """Return a list of passengers blocking the row.
+        
+        Returns:
+            A list of passengers blocking the row. Empty if no blocking
+            passengers.
+        """
+        seat_x, seat_y = self.assigned_seat.grid_coordinate
+        aisle_column = self.model.airplane.aisle_column
+        
+        y_dir = 1 if seat_y > aisle_column else -1
+        
+        blocking_y_coords = range(
+            aisle_column + y_dir,
+            seat_y,
+            y_dir
+        )
+        blocking_positions = [(seat_x, y) for y in blocking_y_coords]
+            
+        return self.model.grid.get_cell_list_contents(blocking_positions)
+    
+    def waiting_position(self) -> tuple[int, int]:
+        _, seat_y = self.assigned_seat.grid_coordinate
+        aisle_column = self.model.airplane.aisle_column
+        y_dir = -1 if seat_y > aisle_column else 1
+        
+        target = (self.pos[0], self.pos[1] + y_dir)
+        # If opposite side of aisle is free
+        if self.model.grid.is_cell_empty(target):
+            return target
+        else:
+            return (self.pos[0] - 1, self.pos[1])
