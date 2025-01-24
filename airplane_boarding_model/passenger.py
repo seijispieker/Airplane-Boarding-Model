@@ -19,6 +19,19 @@ class Passenger(mesa.Agent):
         assigned_seat: The Seat assigned to the passenger.
         seated: True if the passenger is seated, False otherwise.
         last_move: The number of steps since the last move.
+        shuffle_out_of_seat: If in a seat shuffle situation, True if the
+            passenger is shuffling out of the seat, False otherwise.
+        shuffle_into_seat: If in a seat shuffle situation, True if the passenger
+            is shuffling into the seat, False otherwise.
+        waiting_for_shuffling: If in a seat shuffle situation, True if the
+            passenger is waiting for shuffling, False otherwise. In cases where
+            the passenger is waiting for other passengers to shuffle out of the
+            seats.
+        shuffle_precedence: If in a seat shuffle situation, True if the
+            passenger has precedence in shuffling over the other passengers.
+        passengers_shuffling: If in a seat shuffle situation, a list of
+            Passenger objects representing the other passengers who are in the
+            seat shuffle situation.
     """
     
     def __init__(
