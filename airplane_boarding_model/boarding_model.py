@@ -237,8 +237,7 @@ class BoardingModel(mesa.Model):
                         j += 1
                     row_i += 1
             i += 1 
-        # remove this print when the model self.assigned seats on line 99 is fixed
-        print(f"the segmented layout (before shuffling): THIS CAN BE REMOVED WHEN BASE MODEL IS FIXED \n{segmented_layout}")        
+
         #for each segment take the passenger_count seats randomly
         random_segmented_seats = []
         i = 0
@@ -256,7 +255,13 @@ class BoardingModel(mesa.Model):
         flatten = lambda xss: [x for xs in xss for x in xs]
         method_list = flatten(random_segmented_seats)
         method_list = self.passenger_adherence(method_list)
-        return reversed(method_list)
+        
+        i = -1
+        reversed_method_list= []
+        for _ in range(len(method_list)):
+            reversed_method_list.append(method_list[i])
+            i -= 1
+        return reversed_method_list
                 
     def seats_outside_in(self) -> list[Seat]:
         segments = 3 # window, middle seat, aile seat
@@ -291,7 +296,7 @@ class BoardingModel(mesa.Model):
             left += 1
             right -= 1
             i += 1
-        print(f"the segmented layout (before shuffling): THIS CAN BE REMOVED WHEN BASE MODEL IS FIXED \n{segmented_layout}")
+        
         for segment in segmented_layout:
             self.random.shuffle(segment)
         
