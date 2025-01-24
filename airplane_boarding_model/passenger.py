@@ -28,6 +28,8 @@ class Passenger(mesa.Agent):
         luggage_items: int = 1,
         assigned_seat: Seat = None,
         seated: bool = False,
+        blocking: bool = False,
+        waiting_to_be_seated: bool = False
     ):
         """Initialize a Passenger object."""
         super().__init__(model)
@@ -37,6 +39,8 @@ class Passenger(mesa.Agent):
         self.luggage_time = round(luggage_items * single_luggage_time * model.steps_per_second)
         self.assigned_seat = assigned_seat
         self.seated = seated
+        self.blokcing = blocking
+        self.waiting_to_be_seated = waiting_to_be_seated
         self.last_move = aisle_steps_per_move
 
         #Initialize blocking_agents as an empty list
@@ -45,7 +49,7 @@ class Passenger(mesa.Agent):
     def step(self):
         """Advance the passenger by one step."""
     
-        row, col = self.assigned_seat.seat_row, self.assigned_seat.seat_column
+        row, col = self.assigned_seat.grid_coordinate
         aisle_col = self.model.airplane.aisle_column
         temp_positions = [(row - 1, aisle_col), (row, aisle_col + 1)] if col < aisle_col else [(row - 1, aisle_col), (row, aisle_col - 1)]
 
@@ -55,7 +59,7 @@ class Passenger(mesa.Agent):
         if self.seated:
             return
 
-        # If the passenger is waiting to be seated, do nothing
+        # If the passenger is waiting to be seated, nothing happens
         if hasattr(self, "waiting_to_be_seated") and self.waiting_to_be_seated:
 
             #Checks if the relevant blocking agents have reached their final temporary positions down the aisle.
@@ -117,6 +121,7 @@ class Passenger(mesa.Agent):
                 if self.pos[1] == col:
                     self.seated = True
                     self.assigned_seat.occupied = True
+                    return
                 else:
                     direction = 1 if col > self.pos[1] else -1
                     self.move(drow=0, dcol=direction)
