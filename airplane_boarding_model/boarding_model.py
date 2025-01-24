@@ -59,8 +59,9 @@ class BoardingModel(mesa.Model):
             width=self.airplane.grid_width,
             height=self.airplane.grid_height,
             torus=False,
-        )    
-        
+        )
+        self.frozen_aisle_cells = [False] * self.airplane.grid_width
+
         self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
         luggage_sample = self.random.choices(
             population=[1, 2, 3],
@@ -148,7 +149,9 @@ class BoardingModel(mesa.Model):
         Returns:
             A list of Seat objects in random order.
         """
-        pass  # TODO: Implement this method
+        all_seats = self.airplane.seats_list()
+        self.random.shuffle(all_seats)
+        return all_seats
     
     def passenger_adherence(self, method_list):
         '''

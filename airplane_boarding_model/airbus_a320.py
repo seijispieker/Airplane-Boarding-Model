@@ -3,6 +3,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+from itertools import chain
 import mesa.agent
 
 if TYPE_CHECKING:
@@ -68,7 +69,7 @@ class AirbusA320:
         self.entrance_length = 6
         self.aisle_length = 2 * self.seat_rows
         self.aisle_column = 3 # Middle column
-        self.grid_width = self.entrance_length + self.aisle_length
+        self.grid_width = 2 * self.entrance_length + self.aisle_length
         self.grid_height = self.columns
         self.seat_map, self.grid_map,  = self.create_seat_grid_map()
         self.entrance = (0, self.aisle_column)
@@ -106,3 +107,10 @@ class AirbusA320:
         for seat, passenger in zip(seats, queue):
             seat.assigned_passenger = passenger
             passenger.assigned_seat = seat
+            passenger.target_x = seat.grid_coordinate[0]
+            passenger.target_y = seat.grid_coordinate[1]
+            
+    def seats_list(self) -> list[Seat]:
+        """Return a list of all seats in the airplane."""
+        flat_iter = chain.from_iterable(self.seat_map)
+        return [seat for seat in flat_iter if seat is not None]
