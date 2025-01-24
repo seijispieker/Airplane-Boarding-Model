@@ -51,6 +51,7 @@ class Passenger(mesa.Agent):
         self.assigned_seat = assigned_seat
         self.seated = seated
         self.last_move = aisle_steps_per_move
+        self.arrival_time = 0
         self.shuffle_out_of_seat = False
         self.shuffle_into_seat = False
         self.waiting_for_shuffling = False

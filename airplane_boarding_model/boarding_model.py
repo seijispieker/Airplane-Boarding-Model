@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 
 import mesa
 import mesa.agent
+import numpy as np
 
 from .airbus_a320 import AirbusA320
 from .passenger import Passenger
@@ -35,7 +36,7 @@ class BoardingModel(mesa.Model):
         aisle_speed: float = 0.8, # meters per second
         occupancy: float = 0.85,
         seat_assignment_method: str = "back_to_front",
-        conformance: int = 95,
+        conformance: int = 100,
     ):
         """Initialize a BoardingModel object.
         
@@ -86,24 +87,37 @@ class BoardingModel(mesa.Model):
             aisle_steps_per_move=self.aisle_steps_per_move,
             luggage_items=3
         )
-        passengers = mesa.agent.AgentSet(single_luggage | two_luggage | three_luggage,
-                                         random=self.random)
-        assert len(passengers) == self.number_of_passengers
-        self.queue = passengers.shuffle(True)
+        self.passengers = mesa.agent.AgentSet(single_luggage | two_luggage | three_luggage,
+                                         random=self.random)   # Changed to self.passengers
+        assert len(self.passengers) == self.number_of_passengers  
+        self.passengers.shuffle(inplace=True)
+        
+        # Schultz 2018:
+        lambd = 1 / (steps_per_second * 3.7)
+        inter_arrival_times = [self.random.expovariate(lambd) for _ in range(self.number_of_passengers - 1)]
+        arrival_timestamps = list(map(round, np.cumsum(inter_arrival_times)))
+        arrival_timestamps.insert(0, 0)
+        
+        # Assign timestamps to passengers
+        for passenger, timestamp in zip(self.passengers, arrival_timestamps):
+            passenger.arrival_time = timestamp
+
+        self.passengers.sort(key=lambda p: p.arrival_time)
+        self.queue = []
           
         self.adherence = conformance
         # TODO: seat_assignment_method with input number of seats
         self.assigned_seats = getattr(self, f"seats_{seat_assignment_method}")()
         self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
-        assert len(self.assigned_seats) == len(self.queue)
+        assert len(self.assigned_seats) == len(self.passengers)
         self.airplane.assign_passengers(
             seats=self.assigned_seats,
-            queue=self.queue
+            passengers=self.passengers
         )
 
         # Place first passenger in the entrance
         self.grid.place_agent(
-            agent=self.queue.pop(),
+            agent=self.passengers.pop(),
             pos=self.airplane.entrance
         )
         
@@ -112,18 +126,34 @@ class BoardingModel(mesa.Model):
         )
 
     def step(self):
-        # Check if there are passengers in the queue and the entrance is free
+        """Advance the model by one step."""
+        # Add passengers to queue based on arrival time
+        arrived_at_queue = self.passengers.select(lambda p: p.arrival_time == self.steps)
+        
+        if arrived_at_queue:
+            for passenger in arrived_at_queue:
+                self.queue.append(passenger)
+                self.passengers.remove(passenger)
+
+        #Debug
+        print('Queue size after:', len(self.queue), 'Passenger remaining:', len(self.passengers))
+
+        # New code
         if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
-            self.grid.place_agent(
-                agent=self.queue.pop(),
-                pos=self.airplane.entrance
-            )
+            passenger = self.queue.pop(0)
+            self.grid.place_agent(agent=passenger, pos=self.airplane.entrance)
+            print(f"Passenger {passenger.unique_id} entered the plane at timestep {self.steps}")
+
+        # Debug
+        occupied_seats = sum(seat.occupied for seat in self.assigned_seats)
+        print(f'Occupied seats: {occupied_seats} / {len(self.assigned_seats)}')
 
         self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
 
         if all(seat.occupied for seat in self.assigned_seats):
             self.running = False
+            print('All seats occupied')
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.
