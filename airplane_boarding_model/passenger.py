@@ -28,8 +28,6 @@ class Passenger(mesa.Agent):
         luggage_items: int = 1,
         assigned_seat: Seat = None,
         seated: bool = False,
-        blocking: bool = False,
-        waiting_to_be_seated: bool = False
     ):
         """Initialize a Passenger object."""
         super().__init__(model)
@@ -39,106 +37,163 @@ class Passenger(mesa.Agent):
         self.luggage_time = round(luggage_items * single_luggage_time * model.steps_per_second)
         self.assigned_seat = assigned_seat
         self.seated = seated
-        self.blokcing = blocking
-        self.waiting_to_be_seated = waiting_to_be_seated
         self.last_move = aisle_steps_per_move
-
-        #Initialize blocking_agents as an empty list
-        self.blocking_agents = []
+        self.shuffle_out_of_seat = False
+        self.shuffle_into_seat = False
+        self.waiting_for_shuffling = False
+        self.shuffle_precedence = False
+        self.passengers_shuffling = []
+        
+        if assigned_seat is not None:
+            self.target_x, self.target_y = assigned_seat.grid_coordinate
+        else:
+            self.target_x, self.target_y = (None, None)
         
     def step(self):
         """Advance the passenger by one step."""
-    
-        row, col = self.assigned_seat.grid_coordinate
-        aisle_col = self.model.airplane.aisle_column
-        temp_positions = [(row - 1, aisle_col), (row, aisle_col + 1)] if col < aisle_col else [(row - 1, aisle_col), (row, aisle_col - 1)]
-
+        seat_x, seat_y = self.assigned_seat.grid_coordinate
+        aisle_column = self.model.airplane.aisle_column
+        
         self.last_move += 1
-
-        # If the passenger is seated, nothing happens
-        if self.seated:
-            return
-
-        # If the passenger is waiting to be seated, nothing happens
-        if hasattr(self, "waiting_to_be_seated") and self.waiting_to_be_seated:
-
-            #Checks if the relevant blocking agents have reached their final temporary positions down the aisle.
-            if hasattr(self, "blocking_agents"):
-                relevant_agents_done = all(agent.pos == (agent.target_temp_pos[0], aisle_col) for agent in self.blocking_agents)
-                
-                if relevant_agents_done:
-                    self.waiting_to_be_seated = False #Unflag as waiting to be seated
-                    self.blocking_agents.clear() #Clear the list of blocking agents
-            return
-
-        # If the passenger is still moving to a temporary position
-        if hasattr(self, "blocking") and self.blocking:
-            #Determines a target temporary position (row is 1 or 2 down)
-            target_row = row + (2 if self.blocking == "further" else 1)
-            
-            #Move vertically (across row) toward the temporary position
-            if self.pos[0] < target_row and self.pos[1] > aisle_col:
-                self.move(drow = 0, dcol = -1)
-            elif self.pos[0] < target_row and self.pos[1] < aisle_col:
-                self.move(drow = 0, dcol= +1)
-            elif self.pos[0] < target_row and self.pos[1] == aisle_col:
-                self.move(drow = 1, dcol = 0)
-            
-            if self.pos == (target_row, aisle_col):
-                self.blocking = False #Unflag current agent as blocking
-
-        # If in the correct row
-        if self.pos[0] == row:
-            # Check for blocking agents
-            columns_to_verify = range(col + 1, aisle_col) if col < aisle_col else range(aisle_col + 1, col)
-            is_blocked = any(
-                not self.model.grid.is_cell_empty((row, c)) for c in columns_to_verify
-            )
-
-            if is_blocked:
-                # Flag blocking agents
-                blocking_agents = []
-                for c in columns_to_verify:
-                    if not self.model.grid.is_cell_empty((row, c)):
-                        blocking_agent = self.model.grid.get_cell_list_contents([(row, c)])[0]
-                        blocking_agent.blocking = "further" if len(self.blocking_agents) == 0 else "closer"
-                        blocking_agent.target_temp_pos = (row + (2 if len(self.blocking_agents) == 0 else 1), aisle_col)
-                        blocking_agents.append(blocking_agent)
-
-                # Move the passenger to a temporary position
-                for temp_pos in temp_positions:
-                    if self.model.grid.is_cell_empty(temp_pos):
-                        self.move(drow=temp_pos[0] - self.pos[0], dcol=temp_pos[1] - self.pos[1])
-                        self.waiting_to_be_seated = True  # Flag as waiting to be seated
-                        return
+        
+        if self.shuffle_out_of_seat:
+            # print(f"Shuffling out of seat - s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
+            if self.at_target():
+                self.shuffle_out_of_seat = False
+                self.waiting_for_shuffling = True
+                self.target_x, self.target_y = self.assigned_seat.grid_coordinate
             else:
-                # If waiting to store luggage
-                if self.luggage_time > 0:
-                    self.luggage_time -= 1
-                    return
+                self.move_to_target()
+        elif self.shuffle_into_seat:
+            # print(f"Shuffling into seat s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
+            if self.at_target():
+                self.shuffle_into_seat = False
+                self.seated = True
+                self.assigned_seat.occupied = True
+                
+                if self.all_passengers_shuffling_out_of_aisle():
+                    self.model.frozen_aisle_cells[self.pos[0]] = False
+            else:
+                self.move_to_target()
+        elif self.waiting_for_shuffling:
+            # print(f"Waiting for shuffling s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
+            # print(self.passengers_shuffling)
+            if self.shuffle_precedence and self.all_passengers_shuffling_in_aisle():
+                self.waiting_for_shuffling = False
+                self.shuffle_into_seat = True
+                self.move_to_target()
+            elif self.passengers_shuffling[0].at_target() and self.all_passengers_shuffling_out_of_aisle():
+                # print("hoi")
+                self.waiting_for_shuffling = False
+                self.shuffle_into_seat = True
+                self.move_to_target()
+        # No shuffling
+        # If at seat row
+        elif self.pos[0] == seat_x:
+            # If at seat column
+            if self.at_target():
+                self.seated = True
+                self.assigned_seat.occupied = True
+                return
+                
+            # If waiting to store luggage
+            if self.luggage_time > 0:
+                self.luggage_time -= 1
+                return
+            
+            if self.pos[1] == aisle_column:
+                self.passengers_shuffling = self.get_blocking_passengers()
 
-                # If in the correct column
-                if self.pos[1] == col:
-                    self.seated = True
-                    self.assigned_seat.occupied = True
-                    return
-                else:
-                    direction = 1 if col > self.pos[1] else -1
-                    self.move(drow=0, dcol=direction)
+                if self.passengers_shuffling != []:
+                    for x_offset, passenger_shuffling in enumerate(reversed(self.passengers_shuffling), start=1):
+                        passenger_shuffling.seated = False
+                        passenger_shuffling.assigned_seat.occupied = False
+                        passenger_shuffling.target_x += x_offset
+                        passenger_shuffling.target_y = aisle_column
+                        passenger_shuffling.shuffle_out_of_seat = True
+                        passenger_shuffling.passengers_shuffling.append(self)
+                
+                    self.target_x, self.target_y = self.waiting_position()
+                    self.shuffle_precedence = True
+                    self.shuffle_out_of_seat = True
+                    self.model.frozen_aisle_cells[self.pos[0]] = True
+            
+            self.move_to_target()
+        # Not at seat row and next aisle cell is free
+        elif not self.model.frozen_aisle_cells[self.pos[0] + 1]:
+            self.move_to_target()
+            
+    def get_blocking_passengers(self) -> list[Passenger]:
+        """Return a list of passengers blocking the row.
+        
+        Returns:
+            A list of passengers blocking the row. Empty if no blocking
+            passengers.
+        """
+        seat_x, seat_y = self.assigned_seat.grid_coordinate
+        aisle_column = self.model.airplane.aisle_column
+        
+        y_dir = 1 if seat_y > aisle_column else -1
+        
+        blocking_y_coords = range(
+            aisle_column + y_dir,
+            seat_y,
+            y_dir
+        )
+        blocking_positions = [(seat_x, y) for y in blocking_y_coords]
+            
+        return self.model.grid.get_cell_list_contents(blocking_positions)
+        
+    def all_passengers_shuffling_out_of_aisle(self) -> bool:
+        aisle_column = self.model.airplane.aisle_column
+        return all(passenger.pos[1] != aisle_column for passenger in self.passengers_shuffling)
+    
+    def all_passengers_shuffling_in_aisle(self) -> bool:
+        aisle_column = self.model.airplane.aisle_column
+        return all(passenger.pos[1] == aisle_column for passenger in self.passengers_shuffling)
+    
+    def at_target(self) -> bool:
+        return self.pos == (self.target_x, self.target_y)
+    
+    def waiting_position(self) -> tuple[int, int]:
+        _, seat_y = self.assigned_seat.grid_coordinate
+        aisle_column = self.model.airplane.aisle_column
+        y_dir = -1 if seat_y > aisle_column else 1
+        
+        target = (self.pos[0], self.pos[1] + y_dir)
+        # If opposite side of aisle is free
+        if self.model.grid.is_cell_empty(target):
+            return target
         else:
-            # Move closer to the correct row
-            self.move(drow=row - self.pos[0], dcol=0)
+            return (self.pos[0] - 1, self.pos[1])
         
-    def move(self, drow: int, dcol: int) -> bool:
-        """Move the passenger by the given row and column offsets.
+    def move_to_target(self) -> bool:
+        """Move to target.
         
-        Args:
-            drow: The row offset.
-            dcol: The column offset.    
         Returns:
             True if the passenger moved, False if move not possible.
         """
-        target = (self.pos[0] + drow, self.pos[1] + dcol)
+        aisle_column = self.model.airplane.aisle_column
+        
+        x_dir = 0
+        # If not at row, calculate x direction
+        if self.pos[0] != self.target_x:
+            x_dir = 1 if self.target_x > self.pos[0] else -1
+        y_dir = 0
+        # If not at column, calculate y direction
+        if self.pos[1] != self.target_y:
+            y_dir = 1 if self.target_y > self.pos[1] else -1             
+        
+        target = None
+        if x_dir != 0 and y_dir != 0:
+            # If in aisle, move to row first
+            if self.pos[1] == aisle_column:
+                target = (self.pos[0] + x_dir, self.pos[1])
+            # If in row, move to column first
+            else:
+                target = (self.pos[0], self.pos[1] + y_dir)
+        else:
+            target = (self.pos[0] + x_dir, self.pos[1] + y_dir)
         
         if self.model.grid.is_cell_empty(target) and self.last_move >= self.aisle_steps_per_move:
             self.model.grid.move_agent(self, target)
