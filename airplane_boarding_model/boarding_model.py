@@ -176,7 +176,8 @@ class BoardingModel(mesa.Model):
     def seats_segmented_random(self) -> list[Seat]:
         segments = 3
         passengers = self.number_of_passengers
-        rows = self.airplane.seat_rows 
+        rows = len(self.airplane.seat_map)
+        
         passenger_count_per_segment = []
 
         #--first we determine the amount of passengers that will inhabit each segment
@@ -200,16 +201,15 @@ class BoardingModel(mesa.Model):
                     passenger_count_per_segment.append(int(seg_length))
         
         #-- secondly we determine the length in rows of each segment
-        rows = self.airplane.seat_rows 
         extra_rows = 0
         rows_list = []
-
+        
         #determening the amount of rows each segments holds
         if rows % segments == 0: 
             rows_per_segment = rows / segments
         else:  # if rows cant be equally segmented one row is added to the amount of needed segments
             while rows % segments != 0:
-                rows - 1 
+                rows -= 1 
                 extra_rows += 1 
             rows_per_segment = rows / segments
 
@@ -222,6 +222,7 @@ class BoardingModel(mesa.Model):
         
         #-- thirdly we split the airlplane layout into the respective segments
         layout = self.airplane.seat_map
+        
         segmented_layout = []
         i = 0
         row_i = 0
@@ -236,7 +237,8 @@ class BoardingModel(mesa.Model):
                         j += 1
                     row_i += 1
             i += 1 
-                
+        # remove this print when the model self.assigned seats on line 99 is fixed
+        print(f"the segmented layout (before shuffling): THIS CAN BE REMOVED WHEN BASE MODEL IS FIXED \n{segmented_layout}")        
         #for each segment take the passenger_count seats randomly
         random_segmented_seats = []
         i = 0
@@ -255,39 +257,109 @@ class BoardingModel(mesa.Model):
         method_list = flatten(random_segmented_seats)
         method_list = self.passenger_adherence(method_list)
         return reversed(method_list)
-
+                
     def seats_outside_in(self) -> list[Seat]:
         segments = 3 # window, middle seat, aile seat
         passengers = self.number_of_passengers
         passenger_count_per_segment = []
-        seats_per_segment = self.airplane.seat_rows * self.airplane.columns / segments
+        layout = self.airplane.seat_map
+
+        total_seats = 0
+        for row in layout:
+            total_seats += len(row) - 1
+        seats_per_segment = total_seats / segments
 
         #determening how filled the segments are
         i = 0
         while passengers > 0:
             assigned_seats = 0
-            while assigned_seats > seats_per_segment:
+            while assigned_seats < seats_per_segment and passengers > 0:
                 passengers -= 1
                 assigned_seats += 1
-            passenger_count_per_segment.append([assigned_seats])
+            passenger_count_per_segment.append(assigned_seats)
             i += 1
 
         #creating seat layout for the outside in method
-        layout = self.airplane.seat_map
         segmented_layout = [[],[],[]]
-        
-        
         i = 0
         left = 0
         right = -1
         for _ in range(segments):
             for row in layout:
-                segmented_layout[i].append(row[left], row[right])
+                segmented_layout[i].append(row[left])
+                segmented_layout[i].append(row[right])
             left += 1
             right -= 1
-        print(segmented_layout)
-                
+            i += 1
+        print(f"the segmented layout (before shuffling): THIS CAN BE REMOVED WHEN BASE MODEL IS FIXED \n{segmented_layout}")
+        for segment in segmented_layout:
+            self.random.shuffle(segment)
         
+        #for each passenger assign save a seat untill all passengers have a seat
+        i = 0
+        method_list = [[],[],[]]
+        for passenger_count in passenger_count_per_segment:
+            
+            for j in range(passenger_count):
+                method_list[i].append(segmented_layout[i][j])
+                
+            i += 1
+
+        flatten = lambda xss: [x for xs in xss for x in xs]
+        method_list = flatten(method_list)
+        method_list = self.passenger_adherence(method_list)
+        
+        return method_list
+
+    def seats_steffen_perfect(self) -> list[Seat]:
+        #using outside in layout
+        segments = 3
+        layout = self.airplane.seat_map
+        segmented_layout = [[],[],[]]
+        i = 0
+        left = 0
+        right = -1
+        for _ in range(segments):
+            for row in layout:
+                segmented_layout[i].append(row[left])
+                segmented_layout[i].append(row[right])
+            left += 1
+            right -= 1
+            i += 1
+        
+        #creating 12 segments where each segment is a "group" in the steffen method
+        steffen_layout = []
+        i = 0
+        for _ in range(12): # steffen is done in 12 steps
+            steffen_layout.append([])
+        for segment in segmented_layout:
+            seat = 4
+            for element in segment: # using the defined steffen groups to seperate 
+                if int(str(element)[:-1]) % 2 == 0:
+                    if str(element)[-1:] in ["A", "B", "C"]:
+                        steffen_layout[i].append(element)
+                    else:
+                        steffen_layout[i + 1].append(element)
+                else:
+                    if str(element)[-1:] in ["A", "B", "C"]:
+                        steffen_layout[i + 2].append(element)
+                    else:
+                        steffen_layout[i + 3].append(element)
+            i += 4 
+        
+        #reversing the groups to get the correct order
+        i=0
+        for steffen_group in steffen_layout:
+            steffen_group = reversed(steffen_group)
+            steffen_layout[i] = steffen_group
+            i+=1
+        
+        #flattening the list of lists into a single big list
+        flatten = lambda xss: [x for xs in xss for x in xs]
+        method_list = flatten(steffen_layout)
+        method_list = self.passenger_adherence(method_list)
+
+        return method_list
         
         
         

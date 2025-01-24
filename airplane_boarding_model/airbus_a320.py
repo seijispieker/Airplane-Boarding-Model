@@ -33,6 +33,12 @@ class Seat:
         self.grid_coordinate = grid_coordinate
         self.assigned_passenger = assigned_passenger
         self.occupied = assigned_passenger is not None
+    
+    def __str__(self) -> str:
+        return f"{self.seat_row + 1}{chr(self.seat_column + 65)}"
+
+    def __repr__(self) -> str:
+        return f"{self.seat_row + 1}{chr(self.seat_column + 65)}"
 
 
 class AirbusA320:
