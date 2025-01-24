@@ -1,7 +1,7 @@
 from mesa.batchrunner import batch_run
 import numpy as np
 import pandas as pd
-
+import os
 from airplane_boarding_model.boarding_model import BoardingModel
 
 
@@ -16,6 +16,9 @@ parameters = {
 
 
 def main():
+    if not os.path.exists("results"):
+        os.makedirs("results")
+        
     results = batch_run(
         model_cls=BoardingModel,
         parameters=parameters,
