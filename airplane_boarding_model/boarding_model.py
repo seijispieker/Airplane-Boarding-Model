@@ -135,18 +135,10 @@ class BoardingModel(mesa.Model):
                 self.queue.append(passenger)
                 self.passengers.remove(passenger)
 
-        #Debug
-        print('Queue size after:', len(self.queue), 'Passenger remaining:', len(self.passengers))
-
         # New code
         if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
             passenger = self.queue.pop(0)
             self.grid.place_agent(agent=passenger, pos=self.airplane.entrance)
-            print(f"Passenger {passenger.unique_id} entered the plane at timestep {self.steps}")
-
-        # Debug
-        occupied_seats = sum(seat.occupied for seat in self.assigned_seats)
-        print(f'Occupied seats: {occupied_seats} / {len(self.assigned_seats)}')
 
         self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
