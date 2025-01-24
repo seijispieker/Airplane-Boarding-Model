@@ -148,7 +148,24 @@ class BoardingModel(mesa.Model):
         Returns:
             A list of Seat objects in random order.
         """
-        pass  # TODO: Implement this method
+
+        import random
+
+        layout = self.airplane.seat_map[1:31]
+
+        left_columns = [row[:self.airplane.aisle_column] for row in layout]
+        right_columns = [list(reversed(row[self.airplane.aisle_column + 1:])) for row in layout]
+
+        # Flatten the list of seats
+        all_seats = []
+        for left_row, right_row in zip(left_columns, right_columns):
+            all_seats.extend(left_row)
+            all_seats.extend(right_row)
+    
+        # Shuffle the seats randomly
+        random.shuffle(all_seats)
+    
+        return all_seats
     
     def passenger_adherence(self, method_list):
         '''
