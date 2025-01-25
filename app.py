@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 from mesa.visualization import (
     Slider,
     SolaraViz,
@@ -76,7 +76,7 @@ def agent_portayal(agent: mesa.Agent):
         portrayal["color"] = "white"
         return portrayal
     
-    colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan", "tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
+    colors = list(mcolors.TABLEAU_COLORS)
     # color_index = model.passengers.index(agent) % len(colors)
     color_index = agent.unique_id % len(colors)
     portrayal["color"] = colors[color_index]
