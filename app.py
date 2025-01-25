@@ -74,6 +74,18 @@ def passenger_potrayel(passenger: Passenger):
     
     if passenger.seated:
         portrayal["color"] = "grey"
+
+    if passenger.shuffle_out_of_seat:
+        portrayal["color"] = "green"
+
+    if passenger.shuffle_into_seat:
+        portrayal["color"] = "orange"
+
+    if passenger.shuffle_into_seat and passenger.shuffle_precedence:
+        portrayal["color"] = "red"
+
+    if passenger.waiting_for_shuffling:
+        portrayal["color"] = "purple"
     
     return portrayal
 
