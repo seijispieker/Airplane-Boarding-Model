@@ -67,7 +67,7 @@ model = BoardingModel()
 
 
 def agent_portayal(agent: mesa.Agent):
-    if agent is None:
+    if type(agent) is not Passenger:
         return
     
     cmap = plt.get_cmap("viridis", model.number_of_passengers)
