@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import matplotlib.pyplot as plt
 from mesa.visualization import (
     Slider,
     SolaraViz,
@@ -10,7 +11,6 @@ from mesa.visualization import (
 from airplane_boarding_model.boarding_model import BoardingModel
 
 if TYPE_CHECKING:
-    import matplotlib.pyplot as plt
     from airplane_boarding_model.passenger import Passenger
 
         
@@ -68,24 +68,28 @@ def passenger_potrayel(passenger: Passenger):
     if passenger is None:
         return
     
+    cmap = plt.get_cmap("viridis", model.number_of_passengers)
+
     portrayal = {
         "size": 50,
+        "color": cmap(passenger.unique_id - 1),
+        "alpha": 1.0,
     }
     
     if passenger.seated:
-        portrayal["color"] = "grey"
+        portrayal["alpha"] = 0.3
 
     if passenger.shuffle_out_of_seat:
-        portrayal["color"] = "green"
+        portrayal["marker"] = "P"
 
     if passenger.shuffle_into_seat:
-        portrayal["color"] = "orange"
+        portrayal["marker"] = "X"
 
     if passenger.shuffle_into_seat and passenger.shuffle_precedence:
-        portrayal["color"] = "red"
+        portrayal["marker"] = "*"
 
     if passenger.waiting_for_shuffling:
-        portrayal["color"] = "purple"
+        portrayal["marker"] = "v"
     
     return portrayal
 
