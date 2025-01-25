@@ -185,7 +185,7 @@ class BoardingModel(mesa.Model):
         
         passenger_count_per_segment = []
 
-        #-- secondly we determine the length in rows of each segment
+        #-- first we determine the length in rows of each segment
         extra_rows = 0
         rows_list = []
         
@@ -206,7 +206,7 @@ class BoardingModel(mesa.Model):
                     rows_list.append([rows_per_segment])   
         
         
-        #--first we determine the amount of passengers that will inhabit each segment
+        #-- secondly we determine the amount of passengers that will inhabit each segment
         seg_length = passengers / segments
         if seg_length < 54:
             if passengers % segments == 0: # equally devide the amount of passengers in the amount of segments
