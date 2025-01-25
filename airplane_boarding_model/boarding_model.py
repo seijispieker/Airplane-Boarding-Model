@@ -57,11 +57,7 @@ class BoardingModel(mesa.Model):
         
         self.adherence = conformance
         self.airplane = AirbusA320()
-        
         self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
-        seat_assignment_method = getattr(self, f"seats_{seat_assignment_method}")
-        self.assigned_seats = seat_assignment_method()
-        self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
         
         self.grid = mesa.space.SingleGrid(
             width=self.airplane.grid_width,
@@ -90,6 +86,9 @@ class BoardingModel(mesa.Model):
         self.passengers.sort(key=lambda p: p.arrival_time)
         self.queue = []
 
+        seat_assignment_method = getattr(self, f"seats_{seat_assignment_method}")
+        self.assigned_seats = seat_assignment_method()
+        self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
         self.airplane.assign_passengers(
             seats=self.assigned_seats,
             passengers=self.passengers
