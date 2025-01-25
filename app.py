@@ -71,7 +71,7 @@ def passenger_potrayel(passenger: Passenger):
     cmap = plt.get_cmap("viridis", model.number_of_passengers)
 
     portrayal = {
-        "size": 50,
+        "size": 10,
         "color": cmap(passenger.unique_id - 1),
         "alpha": 1.0,
     }
@@ -81,15 +81,19 @@ def passenger_potrayel(passenger: Passenger):
 
     if passenger.shuffle_out_of_seat:
         portrayal["marker"] = "P"
+        portrayal["size"] = 50
 
     if passenger.shuffle_into_seat:
         portrayal["marker"] = "X"
+        portrayal["size"] = 50
 
     if passenger.shuffle_into_seat and passenger.shuffle_precedence:
         portrayal["marker"] = "*"
+        portrayal["size"] = 50
 
     if passenger.waiting_for_shuffling:
         portrayal["marker"] = "v"
+        portrayal["size"] = 50
     
     return portrayal
 
