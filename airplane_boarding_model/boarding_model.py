@@ -70,13 +70,36 @@ class BoardingModel(mesa.Model):
         )
         self.frozen_aisle_cells = [False] * self.airplane.grid_width
         
-        self.passengers = None
+        self.passengers = Passenger.create_agents(
+            model=self,
+            n=self.number_of_passengers,
+            aisle_steps_per_move=self.aisle_steps_per_move
+        )
+        
+        # Schultz 2018:
+        lambd = 1 / (self.steps_per_second * 3.7)
+        inter_arrival_times = [self.random.expovariate(lambd) for _ in range(self.number_of_passengers - 1)]
+        # TODO: does first passenger need to arrive at time 1?
+        inter_arrival_times.insert(0, 1)
+        arrival_timestamps = list(map(round, np.cumsum(inter_arrival_times)))
+        
+        # Assign timestamps to passengers
+        for passenger, timestamp in zip(self.passengers, arrival_timestamps):
+            passenger.arrival_time = timestamp
+
+        self.passengers.sort(key=lambda p: p.arrival_time)
         self.queue = []
+
+        self.airplane.assign_passengers(
+            seats=self.assigned_seats,
+            passengers=self.passengers
+        )
         
         # Place none passenger agent in grid, otherwise visualization will crash
+        dull_agent = mesa.Agent(self)
         self.grid.place_agent(
-            agent=self.passengers.pop(),
-            pos=(mesa.Agent(self))
+            agent=dull_agent,
+            pos=(0,0)
         )
         
         self.datacollector = mesa.DataCollector(
@@ -84,10 +107,7 @@ class BoardingModel(mesa.Model):
         )
 
     def step(self):
-        """Advance the model by one step."""
-        if self.steps == 1:
-            self.setup()
-        
+        """Advance the model by one step.""" 
         # Add passengers to queue based on arrival time
         arrived_at_queue = self.passengers.select(lambda p: p.arrival_time == self.steps)
         
@@ -106,54 +126,7 @@ class BoardingModel(mesa.Model):
 
         if all(seat.occupied for seat in self.assigned_seats):
             self.running = False
-            print('All seats occupied')
-            
-    def setup(self):
-        luggage_sample = self.random.choices(
-            population=[1, 2, 3],
-            weights=[0.6, 0.3, 0.1],
-            k=self.number_of_passengers 
-        )
-        single_luggage = Passenger.create_agents(
-            model=self,
-            n=luggage_sample.count(1),
-            aisle_steps_per_move=self.aisle_steps_per_move,
-            luggage_items=1
-        )
-        two_luggage = Passenger.create_agents(
-            model=self,
-            n=luggage_sample.count(2),
-            aisle_steps_per_move=self.aisle_steps_per_move,
-            luggage_items=2
-        )
-        three_luggage = Passenger.create_agents(
-            model=self,
-            n=luggage_sample.count(3),
-            aisle_steps_per_move=self.aisle_steps_per_move,
-            luggage_items=3
-        )
-        self.passengers = mesa.agent.AgentSet(single_luggage | two_luggage | three_luggage,
-                                              random=self.random)
-        assert len(self.passengers) == self.number_of_passengers  
-        self.passengers.shuffle(inplace=True)
-        
-        # Schultz 2018:
-        lambd = 1 / (self.steps_per_second * 3.7)
-        inter_arrival_times = [self.random.expovariate(lambd) for _ in range(self.number_of_passengers - 1)]
-        arrival_timestamps = list(map(round, np.cumsum(inter_arrival_times)))
-        arrival_timestamps.insert(0, 0)
-        
-        # Assign timestamps to passengers
-        for passenger, timestamp in zip(self.passengers, arrival_timestamps):
-            passenger.arrival_time = timestamp
-
-        self.passengers.sort(key=lambda p: p.arrival_time)
-        self.queue = []
-
-        self.airplane.assign_passengers(
-            seats=self.assigned_seats,
-            passengers=self.passengers
-        )
+            print('All seats occupied')  
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.
