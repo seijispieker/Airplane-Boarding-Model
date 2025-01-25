@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import matplotlib.pyplot as plt
 from mesa.visualization import (
     Slider,
     SolaraViz,
@@ -66,15 +67,16 @@ model = BoardingModel()
 
 
 def agent_portayal(agent: mesa.Agent):
-    portrayal = {
-        "size": 50,
-    }
+    if agent is None:
+        return
+    
+    cmap = plt.get_cmap("viridis", model.number_of_passengers)
 
-    if type(agent) is not Passenger:
-        portrayal["color"] = "white"
-        return portrayal
-    
-    
+    portrayal = {
+        "size": 10,
+        "color": cmap(agent.unique_id - 1),
+        "alpha": 1.0,
+    }
     
     if agent.seated:
         portrayal["color"] = "grey"
