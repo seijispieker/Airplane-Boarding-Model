@@ -73,13 +73,29 @@ def agent_portayal(agent: mesa.Agent):
     cmap = plt.get_cmap("viridis", model.number_of_passengers)
 
     portrayal = {
-        "size": 10,
+        "size": 15,
         "color": cmap(agent.unique_id - 1),
         "alpha": 1.0,
     }
     
     if agent.seated:
-        portrayal["color"] = "grey"
+        portrayal["alpha"] = 0.3
+
+    if agent.shuffle_out_of_seat:
+        portrayal["marker"] = "P"
+        portrayal["size"] = 50
+
+    if agent.shuffle_into_seat:
+        portrayal["marker"] = "X"
+        portrayal["size"] = 50
+
+    if agent.shuffle_into_seat and agent.shuffle_precedence:
+        portrayal["marker"] = "*"
+        portrayal["size"] = 50
+
+    if agent.waiting_for_shuffling:
+        portrayal["marker"] = "v"
+        portrayal["size"] = 50
     
     return portrayal
 
