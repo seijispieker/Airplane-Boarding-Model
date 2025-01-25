@@ -67,35 +67,22 @@ model = BoardingModel()
 
 
 def agent_portayal(agent: mesa.Agent):
-    if type(agent) is not Passenger:
-        return
-    
-    cmap = plt.get_cmap("viridis", model.number_of_passengers)
-
     portrayal = {
-        "size": 15,
-        "color": cmap(agent.unique_id - 1),
+        "size": 50,
         "alpha": 1.0,
     }
     
+    if type(agent) is not Passenger:
+        portrayal["color"] = "white"
+        return portrayal
+    
+    colors = ["tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan", "tab:blue", "tab:orange", "tab:green", "tab:red", "tab:purple", "tab:brown", "tab:pink", "tab:gray", "tab:olive", "tab:cyan"]
+    # color_index = model.passengers.index(agent) % len(colors)
+    color_index = agent.unique_id % len(colors)
+    portrayal["color"] = colors[color_index]
+    
     if agent.seated:
         portrayal["alpha"] = 0.3
-
-    if agent.shuffle_out_of_seat:
-        portrayal["marker"] = "P"
-        portrayal["size"] = 50
-
-    if agent.shuffle_into_seat:
-        portrayal["marker"] = "X"
-        portrayal["size"] = 50
-
-    if agent.shuffle_into_seat and agent.shuffle_precedence:
-        portrayal["marker"] = "*"
-        portrayal["size"] = 50
-
-    if agent.waiting_for_shuffling:
-        portrayal["marker"] = "v"
-        portrayal["size"] = 50
     
     return portrayal
 
