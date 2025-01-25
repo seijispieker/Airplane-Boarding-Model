@@ -55,48 +55,33 @@ class BoardingModel(mesa.Model):
         self.steps_per_second = steps_per_second
         self.aisle_steps_per_move = round(aisle_speed / self.cell_width * steps_per_second)
         
+        self.adherence = conformance
         self.airplane = AirbusA320()
+        
+        self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
+        seat_assignment_method = getattr(self, f"seats_{seat_assignment_method}")
+        self.assigned_seats = seat_assignment_method()
+        self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
+        
         self.grid = mesa.space.SingleGrid(
             width=self.airplane.grid_width,
             height=self.airplane.grid_height,
             torus=False,
         )
         self.frozen_aisle_cells = [False] * self.airplane.grid_width
-
-        self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
-        luggage_sample = self.random.choices(
-            population=[1, 2, 3],
-            weights=[0.6, 0.3, 0.1],
-            k=self.number_of_passengers 
-        )
-        single_luggage = Passenger.create_agents(
+        
+        self.passengers = Passenger.create_agents(
             model=self,
-            n=luggage_sample.count(1),
-            aisle_steps_per_move=self.aisle_steps_per_move,
-            luggage_items=1
+            n=self.number_of_passengers,
+            aisle_steps_per_move=self.aisle_steps_per_move
         )
-        two_luggage = Passenger.create_agents(
-            model=self,
-            n=luggage_sample.count(2),
-            aisle_steps_per_move=self.aisle_steps_per_move,
-            luggage_items=2
-        )
-        three_luggage = Passenger.create_agents(
-            model=self,
-            n=luggage_sample.count(3),
-            aisle_steps_per_move=self.aisle_steps_per_move,
-            luggage_items=3
-        )
-        self.passengers = mesa.agent.AgentSet(single_luggage | two_luggage | three_luggage,
-                                         random=self.random)   # Changed to self.passengers
-        assert len(self.passengers) == self.number_of_passengers  
-        self.passengers.shuffle(inplace=True)
         
         # Schultz 2018:
-        lambd = 1 / (steps_per_second * 3.7)
+        lambd = 1 / (self.steps_per_second * 3.7)
         inter_arrival_times = [self.random.expovariate(lambd) for _ in range(self.number_of_passengers - 1)]
+        # TODO: does first passenger need to arrive at time 1?
+        inter_arrival_times.insert(0, 1)
         arrival_timestamps = list(map(round, np.cumsum(inter_arrival_times)))
-        arrival_timestamps.insert(0, 0)
         
         # Assign timestamps to passengers
         for passenger, timestamp in zip(self.passengers, arrival_timestamps):
@@ -104,21 +89,17 @@ class BoardingModel(mesa.Model):
 
         self.passengers.sort(key=lambda p: p.arrival_time)
         self.queue = []
-          
-        self.adherence = conformance
-        # TODO: seat_assignment_method with input number of seats
-        self.assigned_seats = getattr(self, f"seats_{seat_assignment_method}")()
-        self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
-        assert len(self.assigned_seats) == len(self.passengers)
+
         self.airplane.assign_passengers(
             seats=self.assigned_seats,
             passengers=self.passengers
         )
-
-        # Place first passenger in the entrance
+        
+        # Place none passenger agent in grid, otherwise visualization will crash
+        dull_agent = mesa.Agent(self)
         self.grid.place_agent(
-            agent=self.passengers.pop(),
-            pos=self.airplane.entrance
+            agent=dull_agent,
+            pos=(0,0)
         )
         
         self.datacollector = mesa.DataCollector(
@@ -126,7 +107,7 @@ class BoardingModel(mesa.Model):
         )
 
     def step(self):
-        """Advance the model by one step."""
+        """Advance the model by one step.""" 
         # Add passengers to queue based on arrival time
         arrived_at_queue = self.passengers.select(lambda p: p.arrival_time == self.steps)
         
@@ -145,7 +126,7 @@ class BoardingModel(mesa.Model):
 
         if all(seat.occupied for seat in self.assigned_seats):
             self.running = False
-            print('All seats occupied')
+            print('All seats occupied')  
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.

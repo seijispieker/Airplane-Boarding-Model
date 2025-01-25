@@ -38,7 +38,6 @@ class Passenger(mesa.Agent):
         self,
         model: BoardingModel,
         aisle_steps_per_move: int,
-        luggage_items: int = 1,
         assigned_seat: Seat = None,
         seated: bool = False,
     ):
@@ -47,6 +46,11 @@ class Passenger(mesa.Agent):
         self.aisle_steps_per_move = aisle_steps_per_move
         # alpha and beta based on Schultz 2018:
         single_luggage_time = self.model.random.weibullvariate(alpha=16, beta=1.7)
+        luggage_items = self.model.random.choices(
+            population=[1, 2, 3],
+            weights=[0.6, 0.3, 0.1],
+            k=1
+        )[0]
         self.luggage_time = round(luggage_items * single_luggage_time * model.steps_per_second)
         self.assigned_seat = assigned_seat
         self.seated = seated
