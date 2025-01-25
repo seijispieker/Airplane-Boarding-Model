@@ -390,6 +390,40 @@ class BoardingModel(mesa.Model):
         method_list = self.passenger_adherence(method_list)
 
         return method_list
+    
+    def seats_debug_B(self) -> list[Seat]:
+        self.number_of_passengers = 10
+        self.passengers = mesa.agent.AgentSet(self.passengers[:10], random=self.random)
+        for i, passenger in enumerate(self.passengers):
+            if i < 1:
+                passenger.arrival_time = i * self.steps_per_second
+            else:
+                passenger.arrival_time = i * self.steps_per_second + 10 * self.steps_per_second
+            
+            passenger.luggage_time = 2 * self.steps_per_second
+        return [self.airplane.seat_map[0][4], self.airplane.seat_map[0][5]] + self.airplane.seats_list()[-8:]
+    
+    def seats_debug_C(self) -> list[Seat]:
+        self.number_of_passengers = 10
+        self.passengers = mesa.agent.AgentSet(self.passengers[:10], random=self.random)
+        for i, passenger in enumerate(self.passengers):
+            if i < 1:
+                passenger.arrival_time = i * self.steps_per_second
+            else:
+                passenger.arrival_time = i * self.steps_per_second + 10 * self.steps_per_second
+            passenger.luggage_time = 2 * self.steps_per_second
+        return [self.airplane.seat_map[0][5], self.airplane.seat_map[0][6]] + self.airplane.seats_list()[-8:]
+    
+    def seats_debug_D(self) -> list[Seat]:
+        self.number_of_passengers = 10
+        self.passengers = mesa.agent.AgentSet(self.passengers[:10], random=self.random)
+        for i, passenger in enumerate(self.passengers):
+            if i < 2:
+                passenger.arrival_time = i * self.steps_per_second
+            else:
+                passenger.arrival_time = i * self.steps_per_second + 10 * self.steps_per_second
+            passenger.luggage_time = 2 * self.steps_per_second
+        return [self.airplane.seat_map[0][5], self.airplane.seat_map[0][4], self.airplane.seat_map[0][6]] + self.airplane.seats_list()[-7:]
         
         
         
