@@ -55,15 +55,62 @@ class BoardingModel(mesa.Model):
         self.steps_per_second = steps_per_second
         self.aisle_steps_per_move = round(aisle_speed / self.cell_width * steps_per_second)
         
+        self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
+        seat_assignment_method = getattr(self, f"seats_{seat_assignment_method}")
+        self.assigned_seats = seat_assignment_method()
+        self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
+        assert len(self.assigned_seats) == len(self.passengers)
+        
+        self.adherence = conformance
+        
         self.airplane = AirbusA320()
+        
         self.grid = mesa.space.SingleGrid(
             width=self.airplane.grid_width,
             height=self.airplane.grid_height,
             torus=False,
         )
         self.frozen_aisle_cells = [False] * self.airplane.grid_width
+        
+        self.passengers = mesa.agent.AgentSet()
+        self.queue = []
+        
+        # Place none passenger agent in grid, otherwise visualization will crash
+        self.grid.place_agent(
+            agent=self.passengers.pop(),
+            pos=(mesa.Agent(self))
+        )
+        
+        self.datacollector = mesa.DataCollector(
+            model_reporters={"Time (s)": lambda model: model.steps * model.steps_per_second},
+        )
 
-        self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
+    def step(self):
+        """Advance the model by one step."""
+        if self.steps == 1:
+            self.setup()
+        
+        # Add passengers to queue based on arrival time
+        arrived_at_queue = self.passengers.select(lambda p: p.arrival_time == self.steps)
+        
+        if arrived_at_queue:
+            for passenger in arrived_at_queue:
+                self.queue.append(passenger)
+                self.passengers.remove(passenger)
+
+        # New code
+        if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
+            passenger = self.queue.pop(0)
+            self.grid.place_agent(agent=passenger, pos=self.airplane.entrance)
+
+        self.grid.agents.shuffle_do("step")
+        self.datacollector.collect(self)
+
+        if all(seat.occupied for seat in self.assigned_seats):
+            self.running = False
+            print('All seats occupied')
+            
+    def setup(self):
         luggage_sample = self.random.choices(
             population=[1, 2, 3],
             weights=[0.6, 0.3, 0.1],
@@ -88,12 +135,12 @@ class BoardingModel(mesa.Model):
             luggage_items=3
         )
         self.passengers = mesa.agent.AgentSet(single_luggage | two_luggage | three_luggage,
-                                         random=self.random)   # Changed to self.passengers
+                                              random=self.random)
         assert len(self.passengers) == self.number_of_passengers  
         self.passengers.shuffle(inplace=True)
         
         # Schultz 2018:
-        lambd = 1 / (steps_per_second * 3.7)
+        lambd = 1 / (self.steps_per_second * 3.7)
         inter_arrival_times = [self.random.expovariate(lambd) for _ in range(self.number_of_passengers - 1)]
         arrival_timestamps = list(map(round, np.cumsum(inter_arrival_times)))
         arrival_timestamps.insert(0, 0)
@@ -104,48 +151,11 @@ class BoardingModel(mesa.Model):
 
         self.passengers.sort(key=lambda p: p.arrival_time)
         self.queue = []
-          
-        self.adherence = conformance
-        # TODO: seat_assignment_method with input number of seats
-        self.assigned_seats = getattr(self, f"seats_{seat_assignment_method}")()
-        self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
-        assert len(self.assigned_seats) == len(self.passengers)
+
         self.airplane.assign_passengers(
             seats=self.assigned_seats,
             passengers=self.passengers
         )
-
-        # Place first passenger in the entrance
-        self.grid.place_agent(
-            agent=self.passengers.pop(),
-            pos=self.airplane.entrance
-        )
-        
-        self.datacollector = mesa.DataCollector(
-            model_reporters={"Time (s)": lambda model: model.steps * model.steps_per_second},
-        )
-
-    def step(self):
-        """Advance the model by one step."""
-        # Add passengers to queue based on arrival time
-        arrived_at_queue = self.passengers.select(lambda p: p.arrival_time == self.steps)
-        
-        if arrived_at_queue:
-            for passenger in arrived_at_queue:
-                self.queue.append(passenger)
-                self.passengers.remove(passenger)
-
-        # New code
-        if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
-            passenger = self.queue.pop(0)
-            self.grid.place_agent(agent=passenger, pos=self.airplane.entrance)
-
-        self.grid.agents.shuffle_do("step")
-        self.datacollector.collect(self)
-
-        if all(seat.occupied for seat in self.assigned_seats):
-            self.running = False
-            print('All seats occupied')
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.
