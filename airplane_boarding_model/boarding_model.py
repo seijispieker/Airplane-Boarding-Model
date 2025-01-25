@@ -55,15 +55,13 @@ class BoardingModel(mesa.Model):
         self.steps_per_second = steps_per_second
         self.aisle_steps_per_move = round(aisle_speed / self.cell_width * steps_per_second)
         
+        self.adherence = conformance
+        self.airplane = AirbusA320()
+        
         self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
         seat_assignment_method = getattr(self, f"seats_{seat_assignment_method}")
         self.assigned_seats = seat_assignment_method()
         self.assigned_seats = self.assigned_seats[:self.number_of_passengers]
-        assert len(self.assigned_seats) == len(self.passengers)
-        
-        self.adherence = conformance
-        
-        self.airplane = AirbusA320()
         
         self.grid = mesa.space.SingleGrid(
             width=self.airplane.grid_width,
@@ -72,7 +70,7 @@ class BoardingModel(mesa.Model):
         )
         self.frozen_aisle_cells = [False] * self.airplane.grid_width
         
-        self.passengers = mesa.agent.AgentSet()
+        self.passengers = None
         self.queue = []
         
         # Place none passenger agent in grid, otherwise visualization will crash

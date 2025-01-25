@@ -116,7 +116,7 @@ class Passenger(mesa.Agent):
                 return
             
             if self.pos[1] == aisle_column:
-                (self.passengers_shuffling := self.get_blocking_passengers()) != []
+                self.passengers_shuffling = self.get_blocking_passengers()
 
                 if self.passengers_shuffling != []:
                     for x_offset, passenger_shuffling in enumerate(reversed(self.passengers_shuffling), start=1):
