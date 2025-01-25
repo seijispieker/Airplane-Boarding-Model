@@ -71,7 +71,7 @@ def passenger_potrayel(passenger: Passenger):
     cmap = plt.get_cmap("viridis", model.number_of_passengers)
 
     portrayal = {
-        "size": 10,
+        "size": 15,
         "color": cmap(passenger.unique_id - 1),
         "alpha": 1.0,
     }
