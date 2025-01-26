@@ -10,7 +10,7 @@ def main():
     plot_interarrival_distribution()
 
 
-def simulate_boarding_time(passenger_count, runs=10, steps_per_second=2, adherence=100):
+def simulate_boarding_time(passenger_count, runs=1, steps_per_second=2, adherence=85):
     """
     Simulates the boarding process and calculatess the average boarding time.
 
@@ -36,7 +36,10 @@ def simulate_boarding_time(passenger_count, runs=10, steps_per_second=2, adheren
         )
         while model.running:
             model.step()
-        times.append(model.datacollector.get_model_vars_dataframe()["Time (s)"].iloc[-1] / 60) 
+        
+        # Collect boarding time
+        time_s = model.datacollector.get_model_vars_dataframe()["Time (s)"].iloc[-1]
+        times.append(time_s / 60) 
 
     return times
     
@@ -45,15 +48,18 @@ def plot_occupancy_boarding_time(results_df: pd.DataFrame):
     Plots the boarding time versus the passenger occupancy of the plane, 
     running an amount of simulations for each occupancy level.
     """ 
-    passenger_counts = range(29, 181, 10)
+    passenger_counts = range(29, 181, 1)
     all_times = []
     average_times = []
 
     for count in passenger_counts:
-        #changed 
-        boarding_times = simulate_boarding_time(count, runs=10, adherence=100)      # 10 runs per passenger count
+        print(f"Starting simulation for passenger count {count}")
+        boarding_times = simulate_boarding_time(count, runs=1, adherence=85)      # 1 run per passenger count
+
         all_times.extend([(count, time) for time in boarding_times])
         average_times.append((count, sum(boarding_times) / len(boarding_times)))
+
+        print(f"Completed boarding simulation for passenger count {count}. Time: {boarding_times}")
 
     x, y = zip(*all_times)
     x_avg, y_avg = zip(*average_times)
@@ -108,7 +114,7 @@ def plot_interarrival_distribution():
 
     # Plot theoretical exponential distribution
     y = len(inter_arrival_times) * bin_width * mean_rate * np.exp(-mean_rate * bin_centers)
-    plt.plot(bin_centers, y, label='Exponential Distribution', linewidth=2)
+    plt.plot(bin_centers, y, label='Exponential Distribution', linewidth=2, color='black')
 
     plt.xlabel('Inter-arrival Time (steps)')
     plt.ylabel('Number of Passengers')

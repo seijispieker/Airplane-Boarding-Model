@@ -124,9 +124,10 @@ class BoardingModel(mesa.Model):
         self.grid.agents.shuffle_do("step")
         self.datacollector.collect(self)
 
-        if all(seat.occupied for seat in self.assigned_seats):
+        all_seated = all(seat.occupied for seat in self.assigned_seats)
+
+        if len(self.queue) == 0 and all_seated:
             self.running = False
-            print('All seats occupied')  
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.

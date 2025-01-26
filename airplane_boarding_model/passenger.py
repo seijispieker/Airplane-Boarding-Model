@@ -75,7 +75,6 @@ class Passenger(mesa.Agent):
         self.last_move += 1
         
         if self.shuffle_out_of_seat:
-            # print(f"Shuffling out of seat - s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
             if self.at_target():
                 self.shuffle_out_of_seat = False
                 self.waiting_for_shuffling = True
@@ -84,7 +83,6 @@ class Passenger(mesa.Agent):
                 self.move_to_target()
 
         elif self.shuffle_into_seat:
-            # print(f"Shuffling into seat - s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
             if self.at_target():
                 self.shuffle_into_seat = False
                 self.seated = True
@@ -96,15 +94,12 @@ class Passenger(mesa.Agent):
                 self.move_to_target()
 
         elif self.waiting_for_shuffling:
-            # print(f"Waiting for shuffling - s:{(seat_x, seat_y)} t:{(self.target_x, self.target_y)} p:{self.pos}")
-            # print(self.passengers_shuffling)
             if self.shuffle_precedence and self.all_passengers_shuffling_in_aisle():
                 self.waiting_for_shuffling = False
                 self.shuffle_into_seat = True
                 self.move_to_target()
                 
             elif not self.shuffle_precedence and self.all_passengers_shuffling_out_of_aisle():
-                # print("hoi")
                 self.waiting_for_shuffling = False
                 self.shuffle_into_seat = True
                 self.move_to_target()
