@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
+import matplotlib.colors as mcolors
 from mesa.visualization import (
     Slider,
     SolaraViz,
@@ -68,16 +69,20 @@ model = BoardingModel()
 def agent_portayal(agent: mesa.Agent):
     portrayal = {
         "size": 50,
+        "alpha": 1.0,
     }
-
+    
     if type(agent) is not Passenger:
         portrayal["color"] = "white"
         return portrayal
     
-    
+    colors = list(mcolors.TABLEAU_COLORS)
+    # color_index = model.passengers.index(agent) % len(colors)
+    color_index = agent.unique_id % len(colors)
+    portrayal["color"] = colors[color_index]
     
     if agent.seated:
-        portrayal["color"] = "grey"
+        portrayal["alpha"] = 0.3
     
     return portrayal
 

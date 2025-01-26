@@ -44,6 +44,12 @@ class Passenger(mesa.Agent):
         """Initialize a Passenger object."""
         super().__init__(model)
         self.aisle_steps_per_move = aisle_steps_per_move
+        # based on Schultz 2008:
+        seat_movement_time = self.model.random.triangular(low=1.8, high=3.0, mode=2.4)
+        self.seat_steps_per_move = round(seat_movement_time * model.steps_per_second)
+        # based on Schultz 2008:
+        seat_shuffle_reaction_time = self.model.random.triangular(low=6, high=20, mode=9)
+        self.seat_shuffle_reaction_time = round(seat_shuffle_reaction_time * model.steps_per_second)
         # alpha and beta based on Schultz 2018:
         single_luggage_time = self.model.random.weibullvariate(alpha=16, beta=1.7)
         luggage_items = self.model.random.choices(
@@ -108,6 +114,11 @@ class Passenger(mesa.Agent):
         elif self.pos[0] == seat_x - 1 and self.get_blocking_passengers() != []:
 
             self.passengers_shuffling = self.get_blocking_passengers()
+            
+            # If waiting for seat shuffle reaction time
+            if self.seat_shuffle_reaction_time > 0:
+                self.seat_shuffle_reaction_time -= 1
+                return
 
             # If waiting to store luggage
             if self.luggage_time > 0:
@@ -149,12 +160,9 @@ class Passenger(mesa.Agent):
         """Check if the passenger is at the target position."""
         return self.pos == (self.target_x, self.target_y)
     
-    def move_to_target(self) -> bool:
-        """Move to target. Movenment is prioritized in x direction when in the
+    def move_to_target(self):
+        """Move to target. Movement is prioritized in x direction when in the
         aisle and in y direction when in the assigned seat row.
-        
-        Returns:
-            True if the passenger moved, False if move not possible.
         """
         aisle_column = self.model.airplane.aisle_column
         
@@ -177,13 +185,21 @@ class Passenger(mesa.Agent):
                 target = (self.pos[0], self.pos[1] + y_dir)
         else:
             target = (self.pos[0] + x_dir, self.pos[1] + y_dir)
+            
+        if not self.model.grid.is_cell_empty(target):
+            return
         
-        if self.model.grid.is_cell_empty(target) and self.last_move >= self.aisle_steps_per_move:
-            self.model.grid.move_agent(self, target)
-            self.last_move = 0
-            return True
+        seat_x = self.assigned_seat.grid_coordinate[0]
+        # If not in the aisle or in the aisle and moving into the seat row,
+        # movement is a seat movement, otherwise it is an aisle movement
+        if self.pos[1] != aisle_column or (self.pos[0] == seat_x == self.target_x):
+            if self.last_move >= self.seat_steps_per_move:
+                self.model.grid.move_agent(self, target)
+                self.last_move = 0
         else:
-            return False
+            if self.last_move >= self.aisle_steps_per_move:
+                self.model.grid.move_agent(self, target)
+                self.last_move = 0
         
     def all_passengers_shuffling_out_of_aisle(self) -> bool:
         aisle_column = self.model.airplane.aisle_column
