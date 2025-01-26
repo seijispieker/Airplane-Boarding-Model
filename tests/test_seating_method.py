@@ -3,6 +3,7 @@ import unittest
 from airplane_boarding_model.boarding_model import BoardingModel
 from airplane_boarding_model.passenger import Passenger
 
+
 class SeatsBackToFrontTestCase(unittest.TestCase):
     def setUp(self):
         self.model = BoardingModel(seat_assignment_method="back_to_front")
