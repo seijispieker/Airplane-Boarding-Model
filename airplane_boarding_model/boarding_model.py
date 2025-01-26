@@ -103,7 +103,7 @@ class BoardingModel(mesa.Model):
         )
         
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Time (s)": lambda model: model.steps * model.steps_per_second}
+            model_reporters={"Time (s)": lambda model: model.steps / model.steps_per_second}
         )
 
     def step(self):
