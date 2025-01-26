@@ -111,8 +111,8 @@ class Passenger(mesa.Agent):
                 self.move_to_target()
 
         #If at seat row - 1
-        elif self.pos[0] == seat_x - 1 and self.get_blocking_passengers() != []:
-
+        elif self.pos[1] == aisle_column and self.pos[0] == seat_x - 1 and self.model.grid.is_cell_empty((seat_x, aisle_column)) and self.get_blocking_passengers() != []:
+            
             self.passengers_shuffling = self.get_blocking_passengers()
             
             # If waiting for seat shuffle reaction time
