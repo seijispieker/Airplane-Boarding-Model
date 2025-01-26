@@ -103,7 +103,10 @@ class BoardingModel(mesa.Model):
         )
         
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Time (s)": lambda model: model.steps / model.steps_per_second}
+            model_reporters={
+                "Time (s)": lambda model: model.steps / model.steps_per_second,
+                "Boarding completed": lambda model: not model.running,
+            }
         )
 
     def step(self):
@@ -122,12 +125,13 @@ class BoardingModel(mesa.Model):
             self.grid.place_agent(agent=passenger, pos=self.airplane.entrance)
 
         self.grid.agents.shuffle_do("step")
-        self.datacollector.collect(self)
 
         all_seated = all(seat.occupied for seat in self.assigned_seats)
 
         if len(self.queue) == 0 and all_seated:
             self.running = False
+            
+        self.datacollector.collect(self)
                     
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.

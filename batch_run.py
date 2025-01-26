@@ -25,7 +25,7 @@ def main():
         number_processes=4,
         data_collection_period=-1,
         iterations=1,
-        max_steps=parameters["steps_per_second"] * 60 * 30,
+        max_steps=parameters["steps_per_second"] * 60 * 50,
         display_progress=True,
     )
 
