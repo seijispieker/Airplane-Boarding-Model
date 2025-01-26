@@ -6,11 +6,11 @@ from airplane_boarding_model.boarding_model import BoardingModel
 
 
 parameters = {
-    "seed": 42,
+    "seed": range(10),
     "steps_per_second": 2,
     "aisle_speed": 0.8,
     "occupancy": np.linspace(start=0.1, stop=1, num=10),
-    "seat_assignment_method": "back_to_front",
+    "seat_assignment_method": "random",
     "conformance": 100
 }
 
@@ -24,8 +24,8 @@ def main():
         parameters=parameters,
         number_processes=4,
         data_collection_period=-1,
-        iterations=10,
-        max_steps=10000,
+        iterations=1,
+        max_steps=parameters["steps_per_second"] * 60 * 30,
         display_progress=True,
     )
 

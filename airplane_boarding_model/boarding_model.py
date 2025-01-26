@@ -77,6 +77,7 @@ class BoardingModel(mesa.Model):
         inter_arrival_times = [self.random.expovariate(lambd) for _ in range(self.number_of_passengers - 1)]
         # TODO: does first passenger need to arrive at time 1?
         inter_arrival_times.insert(0, 1)
+        self.inter_arrival_times = inter_arrival_times
         arrival_timestamps = list(map(round, np.cumsum(inter_arrival_times)))
         
         # Assign timestamps to passengers
@@ -102,7 +103,7 @@ class BoardingModel(mesa.Model):
         )
         
         self.datacollector = mesa.DataCollector(
-            model_reporters={"Time (s)": lambda model: model.steps * model.steps_per_second},
+            model_reporters={"Time (s)": lambda model: model.steps * model.steps_per_second}
         )
 
     def step(self):
