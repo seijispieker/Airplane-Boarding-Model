@@ -67,6 +67,7 @@ class Passenger(mesa.Agent):
         self.waiting_for_shuffling = False
         self.shuffle_precedence = False
         self.passengers_shuffling = []
+        self.seat_shuffle_steps = 0 
         
         if assigned_seat is not None:
             self.target_x, self.target_y = assigned_seat.grid_coordinate
@@ -89,6 +90,31 @@ class Passenger(mesa.Agent):
                 self.move_to_target()
 
         elif self.shuffle_into_seat:
+
+            if self.shuffle_precedence:
+                if self.pos[1] != aisle_column and self.all_passengers_shuffling_out_of_aisle():
+                    shuffle_type = ""
+                    
+                    if len(self.passengers_shuffling) == 2:
+                        shuffle_type = "D"
+                    
+                    if len(self.passengers_shuffling) == 1:
+                        if abs(self.passengers_shuffling[0].assigned_seat.seat_column - aisle_column) == 1:
+                            shuffle_type = "B"
+                        else:
+                            shuffle_type = "C"
+
+                    self.model.datacollector.add_table_row(
+                        table_name="Seat shuffle times",
+                        row={
+                            "Passenger seat": (seat_x, seat_y),
+                            "Time (s)": self.seat_shuffle_steps / self.model.steps_per_second,
+                            "Type (A/B/C/D)": shuffle_type
+                        },
+                    )
+                else:
+                    self.seat_shuffle_steps += 1
+
             if self.at_target():
                 self.shuffle_into_seat = False
                 self.seated = True

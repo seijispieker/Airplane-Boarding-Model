@@ -5,8 +5,10 @@ import pandas as pd
 
 def main():
     results_df = pd.read_csv("results/batch_run_results.csv")
+    shuffle_df = pd.read_csv("results/seat_shuffle_times.csv")
 
     plot_occupancy_boarding_time(results_df)
+    plot_shuffle_time_boxplot(shuffle_df)
 
     
 def plot_occupancy_boarding_time(results_df: pd.DataFrame):
@@ -42,6 +44,24 @@ def plot_occupancy_boarding_time(results_df: pd.DataFrame):
     plt.ylabel("Boarding Time (min)")
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.legend()
+    plt.show()
+
+def plot_shuffle_time_boxplot(shuffle_df: pd.DataFrame):
+    """
+    Plots a boxplot of seat shuffle times categorized by shuffle type (A, B, C, D).
+    """
+    # Ensure only unique rows are used to avoid duplicate entries
+    unique_shuffle_df = shuffle_df.drop_duplicates()
+
+    # Create the boxplot
+    plt.figure(figsize=(8, 6))
+    unique_shuffle_df.boxplot(column="Time (s)", by="Type (A/B/C/D)", grid=False, notch=True)
+
+    plt.title("Seat Shuffle Times by Type")
+    plt.suptitle("")  # Remove default matplotlib boxplot title
+    plt.xlabel("Shuffle Type (A/B/C/D)")
+    plt.ylabel("Time (s)")
+    plt.grid(True, linestyle=":", linewidth=0.7)
     plt.show()
 
 

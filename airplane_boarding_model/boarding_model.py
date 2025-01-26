@@ -106,7 +106,11 @@ class BoardingModel(mesa.Model):
             model_reporters={
                 "Time (s)": lambda model: model.steps / model.steps_per_second,
                 "Boarding completed": lambda model: not model.running,
-            }
+            },
+            tables={
+                "Seat shuffle times": ["Passenger seat", "Time (s)", "Type (A/B/C/D)"],
+
+            },
         )
 
     def step(self):
