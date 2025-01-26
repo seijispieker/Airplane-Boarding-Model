@@ -16,13 +16,13 @@ def plot_occupancy_boarding_time(results_df: pd.DataFrame):
     """
     grouped = results_df.groupby("occupancy")["Time (s)"].mean()
 
-    passenger_counts = grouped.index * 180
+    passenger_counts = grouped.index * 174
     boarding_times = grouped.values / 60
 
     #Plot Boarding Time vs Occupancy
     plt.figure(figsize=(8, 6))
     plt.scatter(
-        results_df["occupancy"] * 180,
+        results_df["occupancy"] * 174,
         results_df["Time (s)"] / 60,
         color="black",
         alpha=0.5,
@@ -31,7 +31,7 @@ def plot_occupancy_boarding_time(results_df: pd.DataFrame):
     )
 
     plt.plot(passenger_counts, boarding_times, color="black", label="Mean Boarding Time")
-    trend = np.polyfit(results_df["occupancy"] * 180, results_df["Time (s)"] / 60, 1)
+    trend = np.polyfit(results_df["occupancy"] * 174, results_df["Time (s)"] / 60, 1)
     trendline = np.polyval(trend,passenger_counts)
 
     plt.plot(passenger_counts, trendline, linestyle="--", color="black", label="Trend Line")
