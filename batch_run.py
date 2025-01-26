@@ -10,7 +10,7 @@ parameters = {
     "steps_per_second": 2,
     "aisle_speed": 0.8,
     "occupancy": np.linspace(start=0.1, stop=1, num=10),
-    "seat_assignment_method": "back_to_front",
+    "seat_assignment_method": "random",
     "conformance": 100
 }
 
@@ -25,7 +25,7 @@ def main():
         number_processes=4,
         data_collection_period=-1,
         iterations=10,
-        max_steps=10000,
+        max_steps=parameters["steps_per_second"] * 60 * 30,
         display_progress=True,
     )
 

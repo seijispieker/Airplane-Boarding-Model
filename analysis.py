@@ -7,7 +7,6 @@ def main():
     results_df = pd.read_csv("results/batch_run_results.csv")
 
     plot_occupancy_boarding_time(results_df)
-    plot_interarrival_distribution(results_df)
 
     
 def plot_occupancy_boarding_time(results_df: pd.DataFrame):
