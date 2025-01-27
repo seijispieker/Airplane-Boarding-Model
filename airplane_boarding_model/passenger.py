@@ -83,6 +83,7 @@ class Passenger(mesa.Agent):
         self.last_move += 1
         
         if self.shuffle_out_of_seat:
+            # If shuffled out of seat and at temporary position in aisle
             if self.at_target():
                 self.shuffle_out_of_seat = False
                 self.waiting_for_shuffling = True
@@ -121,13 +122,12 @@ class Passenger(mesa.Agent):
                 self.waiting_for_shuffling = False
                 self.shuffle_into_seat = True
                 self.move_to_target()
-                
+            # If passenger with presendence is in the seat row
             elif not self.shuffle_precedence and self.all_passengers_shuffling_out_of_aisle():
                 self.waiting_for_shuffling = False
                 self.shuffle_into_seat = True
                 self.move_to_target()
-
-        #If at seat row - 1
+        #If at seat row - 1 and target seat row has blocking passengers
         elif (
             self.pos[1] == aisle_column
             and self.pos[0] == seat_x - 1
@@ -145,6 +145,7 @@ class Passenger(mesa.Agent):
             
             self.passengers_shuffling = self.get_blocking_passengers()
             
+            # If enough space for seat shuffle in aisle
             if (
                 (len(self.passengers_shuffling) == 1
                 and self.model.grid.is_cell_empty((seat_x, aisle_column))
