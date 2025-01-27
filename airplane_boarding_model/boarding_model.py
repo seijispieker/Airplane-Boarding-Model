@@ -108,7 +108,7 @@ class BoardingModel(mesa.Model):
                 "Boarding completed": lambda model: not model.running,
             },
             agent_reporters={
-                "Seat shuffle time (s)": lambda passenger: passenger.seat_shuffle_steps / self.steps_per_second,
+                "Seat shuffle time (s)": lambda passenger: passenger.seat_shuffle_time / self.steps_per_second,
                 "Seat shuffle type (A/B/C/D)": "seat_shuffle_type",
             }
         )
