@@ -63,6 +63,8 @@ class BoardingMethodTestBase(unittest.TestCase):
 
     def test_boarding_sequence(self):
         """Ensure the boarding sequence matches the intended method."""
+
+        print(f"{self.seat_assignment_method}")
         # Define the expected order
         expected_order = self.model.assigned_seats
 
