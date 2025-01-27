@@ -76,7 +76,7 @@ class BoardingModel(mesa.Model):
             n=self.number_of_passengers,
             aisle_steps_per_move=self.aisle_steps_per_move
         )
-        
+
         # Schultz 2018:
         lambd = 1 / (self.steps_per_second * 3.7)
         inter_arrival_times = [self.random.expovariate(lambd) for _ in range(self.number_of_passengers - 1)]
@@ -99,7 +99,7 @@ class BoardingModel(mesa.Model):
             seats=self.assigned_seats,
             passengers=self.passengers
         )
-        
+
         # Place none passenger agent in grid, otherwise visualization will crash
         dull_agent = mesa.Agent(self)
         self.grid.place_agent(
@@ -145,7 +145,13 @@ class BoardingModel(mesa.Model):
             self.running = False
             
         self.datacollector.collect(self)
-                    
+
+    def run_simulation(self):
+        """Run the simulation until all passengers are seated."""
+        self.running = True
+        while self.running:
+            self.step()
+
     def seats_back_to_front(self) -> list[Seat]:
         """Return a list of Seat objects in back to front order.
             
