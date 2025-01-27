@@ -59,8 +59,8 @@ class BoardingModel(mesa.Model):
         self.adherence = conformance
         self.airplane = AirbusA320()
         
-        if number_of_passengers > 0:
-            self.number_of_passengers = number_of_passengers
+        if int(number_of_passengers) > 0:
+            self.number_of_passengers = int(number_of_passengers)
         else:
             self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
         

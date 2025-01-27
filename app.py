@@ -38,14 +38,19 @@ model_params = {
         step=0.1,
         dtype=float
     ),
-    "occupancy": Slider(
-        label="Occupancy (0-1)",
-        value=0.85,
-        min=0,
-        max=1,
-        step=0.05,
-        dtype=float
-    ),
+    # "occupancy": Slider(
+    #     label="Occupancy (0-1)",
+    #     value=0.85,
+    #     min=0,
+    #     max=1,
+    #     step=0.05,
+    #     dtype=float
+    # ),
+    "number_of_passengers": {
+        "type": "InputText",
+        "value": 174,
+        "label": "Number of Passengers",
+    },
     "seat_assignment_method": {
         "type": "Select",
         "value": "back_to_front",
