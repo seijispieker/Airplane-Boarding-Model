@@ -4,10 +4,9 @@ import os
 
 from airplane_boarding_model.boarding_model import BoardingModel
 
-# Took 10 min on Seiji's laptop
 parameters = {
     # TODO: more seeds
-    "seed": range(2),
+    "seed": range(1),
     "steps_per_second": 2,
     "aisle_speed": 0.8,
     "number_of_passengers": range(round(0.71 * 174), round(0.81 * 174) + 1),
@@ -19,7 +18,7 @@ parameters = {
         "steffen_perfect"
     ],
     # TODO: change steps to 1
-    "conformance": range(50, 101, 20)
+    "conformance": range(50, 101)
 }
 
 
