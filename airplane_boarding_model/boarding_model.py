@@ -53,7 +53,7 @@ class BoardingModel(mesa.Model):
         
         self.cell_width = 0.4 # meters
         self.steps_per_second = steps_per_second
-        self.aisle_steps_per_move = round(aisle_speed / self.cell_width * steps_per_second)
+        self.aisle_steps_per_move = round(1 / (aisle_speed / self.cell_width / steps_per_second))
         
         self.adherence = conformance
         self.airplane = AirbusA320()
