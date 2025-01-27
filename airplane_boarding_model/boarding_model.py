@@ -35,6 +35,7 @@ class BoardingModel(mesa.Model):
         steps_per_second: int = 2,
         aisle_speed: float = 0.8, # meters per second
         occupancy: float = 0.85,
+        number_of_passengers: int = -1,
         seat_assignment_method: str = "back_to_front",
         conformance: int = 100,
     ):
@@ -57,7 +58,11 @@ class BoardingModel(mesa.Model):
         
         self.adherence = conformance
         self.airplane = AirbusA320()
-        self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
+        
+        if number_of_passengers > 0:
+            self.number_of_passengers = number_of_passengers
+        else:
+            self.number_of_passengers = round(self.airplane.number_of_seats * occupancy)
         
         self.grid = mesa.space.SingleGrid(
             width=self.airplane.grid_width,

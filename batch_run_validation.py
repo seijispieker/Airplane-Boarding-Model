@@ -1,16 +1,17 @@
 from mesa.batchrunner import batch_run
-import numpy as np
 import pandas as pd
 import os
+
 from airplane_boarding_model.boarding_model import BoardingModel
 
 
+# Took 6 min on Seiji's laptop
 parameters = {
-    "seed": range(10),
+    "seed": range(2),
     "steps_per_second": 2,
     "aisle_speed": 0.8,
-    "occupancy": np.linspace(start=0.1, stop=1, num=10),
-    "seat_assignment_method": "random",
+    "number_of_passengers": range(29, 175),
+    "seat_assignment_method": ["random", "segmented_random"],
     "conformance": 100
 }
 
@@ -36,7 +37,6 @@ def main():
             "Step",
             "steps_per_second",
             "aisle_speed",
-            "occupancy",
             "seat_assignment_method",
             "conformance",
             "Time (s)",
@@ -53,13 +53,13 @@ def main():
         columns=[
             "AgentID",
             "Seat shuffle time (s)",
-            "Seat shuffle type (A/B/C/D)"
+            "Seat shuffle type (A/B/C/D)",
         ],
         inplace=False
     )
     
-    seat_shuffle_times_df.to_csv("results/seat_shuffle_times.csv")
-    boarding_times_df.to_csv("results/boarding_times.csv")
+    seat_shuffle_times_df.to_csv("results/validation/seat_shuffle_times.csv")
+    boarding_times_df.to_csv("results/validation/boarding_times.csv")
 
 
 if __name__ == '__main__':
