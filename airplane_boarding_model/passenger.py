@@ -102,8 +102,9 @@ class Passenger(mesa.Agent):
                 # Set Seat shuffle type                    
                 if len(self.passengers_shuffling) == 2:
                     self.seat_shuffle_type = "D"  
-                elif len(self.passengers_shuffling) == 1:
-                    if abs(self.passengers_shuffling[0].assigned_seat.seat_column - aisle_column) == 1:
+                
+                if len(self.passengers_shuffling) == 1:
+                    if abs(self.passengers_shuffling[0].assigned_seat.seat_column - 1 - aisle_column) == 1:
                         self.seat_shuffle_type = "B"
                     else:
                          self.seat_shuffle_type = "C"
