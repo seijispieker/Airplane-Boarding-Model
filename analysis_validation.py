@@ -5,29 +5,29 @@ from scipy.stats import linregress
 
 
 def main():
-    boarding_times_df = pd.read_csv("results/boarding_times.csv")
-    seat_shuffle_times_df = pd.read_csv("results/seat_shuffle_times.csv")
+    boarding_times_df = pd.read_csv("results/validation/boarding_times.csv")
+    seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
     compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
 
-    plot_occupancy_boarding_time(boarding_times_df)
+    plot_number_of_passengers_boarding_time(boarding_times_df)
     plot_shuffle_time_boxplot(seat_shuffle_times_df)
     check_model(boarding_times_df, compare_df, n_iterations= 1000)
 
     
-def plot_occupancy_boarding_time(boarding_times_df: pd.DataFrame):
+def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame):
     """
     Plots the boarding time versus the passenger occupancy of the plane, 
     running an amount of simulations for each occupancy level.
     """
-    grouped = boarding_times_df.groupby("occupancy")["Time (s)"].mean()
+    grouped = boarding_times_df.groupby("number_of_passengers")["Time (s)"].mean()
 
-    passenger_counts = grouped.index * 174 
+    passenger_counts =  grouped.index
     mean_boarding_times = grouped.values / 60 
 
     #Plot Boarding Time vs Occupancy
     plt.figure(figsize=(8, 6))
     plt.scatter(
-        boarding_times_df["occupancy"] * 174,
+        boarding_times_df["number_of_passengers"],
         boarding_times_df["Time (s)"] / 60,
         color="black",
         alpha=0.5,
@@ -37,7 +37,7 @@ def plot_occupancy_boarding_time(boarding_times_df: pd.DataFrame):
 
     plt.plot(passenger_counts, mean_boarding_times, color="black", label="Mean Boarding Time")
 
-    trend = np.polyfit(boarding_times_df["occupancy"] * 174, boarding_times_df["Time (s)"] / 60, 1)
+    trend = np.polyfit(boarding_times_df["number_of_passengers"] * 174, boarding_times_df["Time (s)"] / 60, 1)
     trendline = np.polyval(trend, passenger_counts)
 
     plt.plot(passenger_counts, trendline, linestyle="--", color="black", label="Trend Line")
@@ -86,7 +86,7 @@ def check_model(df1, df2, n_iterations=10000):
         return np.array(slopes)
 
     #bootstrapping slope
-    slopes_model = bootstrap_slopes(df1, "occupancy", "Time (s)", x_multiplyer = 174,  y_multiplyer= 60, n_iterations= n_iterations )
+    slopes_model = bootstrap_slopes(df1, "number_of_passengers", "Time (s)", y_multiplyer= 60, n_iterations= n_iterations)
     slopes_real = bootstrap_slopes(df2, "people", "boarding time", n_iterations= n_iterations)
 
     #checking range of bootstrapped slopes
@@ -101,13 +101,13 @@ def check_model(df1, df2, n_iterations=10000):
     
     
     #--- plotting graphs
-    grouped = df1.groupby("occupancy")["Time (s)"].mean()
-    passenger_counts = grouped.index * 174 
+    grouped = df1.groupby("number_of_passengers")["Time (s)"].mean()
+    passenger_counts = grouped.index
 
     #scatter model data
     plt.figure(figsize=(8, 6))
     plt.scatter(
-        df1["occupancy"] * 174,
+        df1["number_of_passengers"],
         df1["Time (s)"] / 60,
         color="red",
         alpha=0.5,
@@ -116,7 +116,7 @@ def check_model(df1, df2, n_iterations=10000):
     )
 
     #trendline model data
-    trend = np.polyfit(df1["occupancy"] * 174, df1["Time (s)"] / 60, 1)
+    trend = np.polyfit(df1["number_of_passengers"], df1["Time (s)"] / 60, 1)
     trendline = np.polyval(trend, passenger_counts)
     plt.plot(passenger_counts, trendline, linestyle="--", color="red", label="Trend model")
 
