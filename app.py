@@ -62,9 +62,7 @@ model_params = {
     ),
 }
 
-
 model = BoardingModel()
-
 
 def agent_portayal(agent: mesa.Agent):
     portrayal = {
@@ -132,37 +130,37 @@ def post_process_space(ax: plt.Axes):
                     )
                     continue
 
-
             x_offset = -0.5
             y_offset = -0.5
-            width = 1
-            height = 1
 
-            if row_index == 3:  # Aisle row
+            # Aisle row color
+            if row_index == 3:
                 ax.add_patch(
                     plt.Rectangle(
                         (col_index + x_offset, row_index + y_offset),
-                        width,
-                        height,
+                        1,
+                        1,
                         color="gray",
                         alpha=0.3,
                     )
                 )
-            else:  # Seat rows
+            # Seat rows color
+            else: 
                 ax.add_patch(
                     plt.Rectangle(
                         (col_index + x_offset, row_index + y_offset),
-                        width,
-                        height,
+                        1,
+                        1,
                         color="blue",
                         alpha=0.3,
                     )
                 )
+
     # Visualization of row numbers
     row_number = 1
     for col_index in range(6, adjusted_grid_width - 2, 2):
         ax.text(
-            col_index, # -0.5 miss
+            col_index,
             -1,
             str(row_number),
             fontsize=10,
@@ -176,7 +174,6 @@ def post_process_space(ax: plt.Axes):
     ax.set_xticks([])
     ax.set_yticks([])
 
-    # Adjust the plot limits
     ax.set_xlim(-0.5, adjusted_grid_width - 0.5)
     ax.set_ylim(-0.5, airplane.grid_height - 0.5)
     ax.set_aspect("equal", adjustable="box")
