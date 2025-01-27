@@ -227,7 +227,7 @@ class BoardingModel(mesa.Model):
         
         #-- secondly we determine the amount of passengers that will inhabit each segment
         seg_length = passengers / segments
-        if seg_length < 43:
+        if seg_length <= 42:
             if passengers % segments == 0: # equally devide the amount of passengers in the amount of segments
                 
                 for _ in range(segments):
