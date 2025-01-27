@@ -18,6 +18,9 @@ parameters = {
 def main():
     if not os.path.exists("results"):
         os.makedirs("results")
+    
+    if not os.path.exists("results/validation"):
+        os.makedirs("results/validation")
         
     results = batch_run(
         model_cls=BoardingModel,
