@@ -104,6 +104,7 @@ def post_process_space(ax: plt.Axes):
                     )
                     continue
                 elif row_index == 3:
+                    # Entrance and back of the plane color
                     ax.add_patch(
                         plt.Rectangle(
                             (col_index - 0.5, row_index - 0.5),
@@ -115,7 +116,7 @@ def post_process_space(ax: plt.Axes):
                         )
                     )
 
-            # Gray between the seats
+            # Space between the seats color
             if 5 <= col_index <= 61 and (col_index - 5) % 2 == 0:
                 if row_index in [0, 1, 2, 4, 5, 6]:
                     ax.add_patch(
@@ -123,7 +124,7 @@ def post_process_space(ax: plt.Axes):
                             (col_index - 0.5, row_index - 0.5),
                             1, 
                             1, 
-                            color="gray",
+                            color="blue",
                             alpha=0.3,
                             zorder=0,
                         )
@@ -151,14 +152,15 @@ def post_process_space(ax: plt.Axes):
                         (col_index + x_offset, row_index + y_offset),
                         1,
                         1,
-                        color="blue",
-                        alpha=0.3,
+                        color="gray",
+                        alpha=1,
+                        zorder=0,
                     )
                 )
 
     # Visualization of row numbers
     row_number = 1
-    for col_index in range(6, adjusted_grid_width - 2, 2):
+    for col_index in range(5, adjusted_grid_width - 2, 2):
         ax.text(
             col_index,
             -1,
