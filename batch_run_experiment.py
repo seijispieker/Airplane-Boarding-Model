@@ -4,24 +4,31 @@ import os
 
 from airplane_boarding_model.boarding_model import BoardingModel
 
-
-# Took 6 min on Seiji's laptop
+# Took 10 min on Seiji's laptop
 parameters = {
-    #TODO: more seeds
+    # TODO: more seeds
     "seed": range(2),
     "steps_per_second": 2,
     "aisle_speed": 0.8,
-    "number_of_passengers": range(29, 175),
-    "seat_assignment_method": ["random", "segmented_random"],
-    "conformance": 100
+    "number_of_passengers": range(round(0.71 * 174), round(0.81 * 174) + 1),
+    "seat_assignment_method": [
+        "random",
+        "back_to_front",
+        "segmented_random",
+        "outside_in",
+        "steffen_perfect"
+    ],
+    # TODO: change steps to 1
+    "conformance": range(50, 101, 20)
 }
+
 
 def main():
     if not os.path.exists("results"):
         os.makedirs("results")
     
-    if not os.path.exists("results/validation"):
-        os.makedirs("results/validation")
+    if not os.path.exists("results/experiment"):
+        os.makedirs("results/experiment")
         
     results = batch_run(
         model_cls=BoardingModel,
@@ -36,24 +43,11 @@ def main():
     results_df = pd.DataFrame(results)
     results_df = results_df.drop(columns=["iteration"], inplace=False)
     
-    seat_shuffle_times_df = results_df.drop(
-        columns=[
-            "Step",
-            "steps_per_second",
-            "aisle_speed",
-            "seat_assignment_method",
-            "conformance",
-            "Time (s)",
-            "Boarding completed",
-        ],
-        inplace=False
-    )
-    
-    boarding_times_df = results_df.drop_duplicates(
+    results_df = results_df.drop_duplicates(
         subset=["RunId"],
         inplace=False
     )
-    boarding_times_df = boarding_times_df.drop(
+    results_df = results_df.drop(
         columns=[
             "AgentID",
             "Seat shuffle time (s)",
@@ -62,8 +56,7 @@ def main():
         inplace=False
     )
     
-    seat_shuffle_times_df.to_csv("results/validation/seat_shuffle_times.csv")
-    boarding_times_df.to_csv("results/validation/boarding_times.csv")
+    results_df.to_csv("results/experiment/results.csv")
 
 
 if __name__ == '__main__':
