@@ -14,7 +14,6 @@ parameters = {
     "conformance": 100
 }
 
-
 def main():
     if not os.path.exists("results"):
         os.makedirs("results")
@@ -28,9 +27,39 @@ def main():
         max_steps=parameters["steps_per_second"] * 60 * 50,
         display_progress=True,
     )
-
+    
     results_df = pd.DataFrame(results)
-    results_df.to_csv("results/batch_run_results.csv")
+    results_df = results_df.drop(columns=["iteration"], inplace=False)
+    
+    seat_shuffle_times_df = results_df.drop(
+        columns=[
+            "Step",
+            "steps_per_second",
+            "aisle_speed",
+            "occupancy",
+            "seat_assignment_method",
+            "conformance",
+            "Time (s)",
+            "Boarding completed",
+        ],
+        inplace=False
+    )
+    
+    boarding_times_df = results_df.drop_duplicates(
+        subset=["RunId"],
+        inplace=False
+    )
+    boarding_times_df = boarding_times_df.drop(
+        columns=[
+            "AgentID",
+            "Seat shuffle time (s)",
+            "Seat shuffle type (A/B/C/D)"
+        ],
+        inplace=False
+    )
+    
+    seat_shuffle_times_df.to_csv("results/seat_shuffle_times.csv")
+    boarding_times_df.to_csv("results/boarding_times.csv")
 
 
 if __name__ == '__main__':

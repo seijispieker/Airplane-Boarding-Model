@@ -67,6 +67,8 @@ class Passenger(mesa.Agent):
         self.waiting_for_shuffling = False
         self.shuffle_precedence = False
         self.passengers_shuffling = []
+        self.seat_shuffle_time = 0 
+        self.seat_shuffle_type = "A"
         
         if assigned_seat is not None:
             self.target_x, self.target_y = assigned_seat.grid_coordinate
@@ -78,65 +80,97 @@ class Passenger(mesa.Agent):
         seat_x, seat_y = self.assigned_seat.grid_coordinate
         aisle_column = self.model.airplane.aisle_column
         
-        self.last_move += 1
-        
         if self.shuffle_out_of_seat:
+            # If shuffled out of seat and at temporary position in aisle
             if self.at_target():
                 self.shuffle_out_of_seat = False
                 self.waiting_for_shuffling = True
                 self.target_x, self.target_y = self.assigned_seat.grid_coordinate
             else:
                 self.move_to_target()
-
-        elif self.shuffle_into_seat:
+        elif self.shuffle_into_seat:                                   
             if self.at_target():
                 self.shuffle_into_seat = False
                 self.seated = True
                 self.assigned_seat.occupied = True
+                self.shuffle_precedence = False
                 
                 if self.all_passengers_shuffling_out_of_aisle():
                     self.model.frozen_aisle_cells[self.pos[0]] = False
             else:
+                if (
+                    self.shuffle_precedence
+                    and not self.all_passengers_shuffling_out_of_aisle()
+                ):
+                    self.seat_shuffle_time += 1
+                    
                 self.move_to_target()
-
         elif self.waiting_for_shuffling:
-            if self.shuffle_precedence and self.all_passengers_shuffling_in_aisle():
-                self.waiting_for_shuffling = False
-                self.shuffle_into_seat = True
-                self.move_to_target()
+            if self.shuffle_precedence:
+                self.seat_shuffle_time += 1
                 
-            elif not self.shuffle_precedence and self.all_passengers_shuffling_out_of_aisle():
-                self.waiting_for_shuffling = False
-                self.shuffle_into_seat = True
-                self.move_to_target()
-
-        #If at seat row - 1
-        elif self.pos[1] == aisle_column and self.pos[0] == seat_x - 1 and self.model.grid.is_cell_empty((seat_x, aisle_column)) and self.get_blocking_passengers() != []:
-            
-            self.passengers_shuffling = self.get_blocking_passengers()
+                if self.all_passengers_shuffling_in_aisle():
+                    self.waiting_for_shuffling = False
+                    self.shuffle_into_seat = True
+                    self.move_to_target()
+            else:
+                if self.all_passengers_shuffling_out_of_aisle():
+                    self.waiting_for_shuffling = False
+                    self.shuffle_into_seat = True
+                    self.move_to_target()
+        #If at seat row - 1 and target seat row has blocking passengers
+        elif (
+            self.pos[1] == aisle_column
+            and self.pos[0] == seat_x - 1
+            and self.get_blocking_passengers() != []
+        ):
+            # If waiting to store luggage
+            if self.luggage_time > 0:
+                self.luggage_time -= 1
+                return
             
             # If waiting for seat shuffle reaction time
             if self.seat_shuffle_reaction_time > 0:
                 self.seat_shuffle_reaction_time -= 1
                 return
+            
+            self.passengers_shuffling = self.get_blocking_passengers()
+            
+            # If enough space for seat shuffle in aisle
+            if (
+                (len(self.passengers_shuffling) == 1
+                and self.model.grid.is_cell_empty((seat_x, aisle_column))
+                and self.model.grid.is_cell_empty((seat_x + 1, aisle_column)))
+                or
+                (len(self.passengers_shuffling) == 2
+                and self.model.grid.is_cell_empty((seat_x, aisle_column))
+                and self.model.grid.is_cell_empty((seat_x + 1, aisle_column))
+                and self.model.grid.is_cell_empty((seat_x + 2, aisle_column)))
+            ):
+                for x_offset, passenger_shuffling in enumerate(reversed(self.passengers_shuffling), start=1):
+                    passenger_shuffling.seated = False
+                    passenger_shuffling.assigned_seat.occupied = False
+                    passenger_shuffling.target_x += x_offset
+                    passenger_shuffling.target_y = aisle_column
+                    passenger_shuffling.shuffle_out_of_seat = True
+                    passenger_shuffling.shuffle_precedence = False
+                    passenger_shuffling.passengers_shuffling = []
+                    passenger_shuffling.passengers_shuffling.append(self)
 
-            # If waiting to store luggage
-            if self.luggage_time > 0:
-                self.luggage_time -= 1
-                return
-
-            for x_offset, passenger_shuffling in enumerate(reversed(self.passengers_shuffling), start=1):
-                passenger_shuffling.seated = False
-                passenger_shuffling.assigned_seat.occupied = False
-                passenger_shuffling.target_x += x_offset
-                passenger_shuffling.target_y = aisle_column
-                passenger_shuffling.shuffle_out_of_seat = True
-                passenger_shuffling.passengers_shuffling.append(self)
-        
-            self.shuffle_precedence = True
-            self.waiting_for_shuffling = True
-            self.model.frozen_aisle_cells[self.pos[0] + 1] = True
-        
+                # Set Seat shuffle type                    
+                if len(self.passengers_shuffling) == 2:
+                    self.seat_shuffle_type = "D"  
+                
+                if len(self.passengers_shuffling) == 1:
+                    if abs(self.passengers_shuffling[0].assigned_seat.seat_column - 1 - aisle_column) == 1:
+                        self.seat_shuffle_type = "B"
+                    else:
+                         self.seat_shuffle_type = "C"
+                         
+                self.shuffle_precedence = True
+                self.waiting_for_shuffling = True
+                self.seat_shuffle_time = 1
+                self.model.frozen_aisle_cells[self.pos[0] + 1] = True
         # No seat shuffle situation
         # If at seat row
         elif self.pos[0] == seat_x:
@@ -151,6 +185,15 @@ class Passenger(mesa.Agent):
                 self.luggage_time -= 1
                 return
             
+            # TODO: ?
+            # # If waiting for seat shuffle reaction time
+            # if self.seat_shuffle_reaction_time > 0:
+            #     self.seat_shuffle_reaction_time -= 1
+            #     return
+            
+            if self.pos[1] == aisle_column:
+                self.seat_shuffle_time += 1
+                
             self.move_to_target()
         # Not at seat row and next aisle cell is free
         elif not self.model.frozen_aisle_cells[self.pos[0] + 1]:
@@ -185,9 +228,14 @@ class Passenger(mesa.Agent):
                 target = (self.pos[0], self.pos[1] + y_dir)
         else:
             target = (self.pos[0] + x_dir, self.pos[1] + y_dir)
+        
+        # TODO: or mauybe after if statement
+        self.last_move += 1
             
         if not self.model.grid.is_cell_empty(target):
             return
+        
+        # self.last_move += 1
         
         seat_x = self.assigned_seat.grid_coordinate[0]
         # If not in the aisle or in the aisle and moving into the seat row,

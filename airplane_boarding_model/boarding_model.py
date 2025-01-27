@@ -104,8 +104,12 @@ class BoardingModel(mesa.Model):
         
         self.datacollector = mesa.DataCollector(
             model_reporters={
-                "Time (s)": lambda model: model.steps / model.steps_per_second,
+                "Time (s)": lambda model: model.steps / self.steps_per_second,
                 "Boarding completed": lambda model: not model.running,
+            },
+            agent_reporters={
+                "Seat shuffle time (s)": lambda passenger: passenger.seat_shuffle_time / self.steps_per_second,
+                "Seat shuffle type (A/B/C/D)": "seat_shuffle_type",
             }
         )
 
@@ -119,10 +123,14 @@ class BoardingModel(mesa.Model):
                 self.queue.append(passenger)
                 self.passengers.remove(passenger)
 
-        # New code
         if self.queue and self.grid.is_cell_empty(self.airplane.entrance):
             passenger = self.queue.pop(0)
             self.grid.place_agent(agent=passenger, pos=self.airplane.entrance)
+            
+            if not self.grid.is_cell_empty((0,0)):
+                dull_agent = self.grid.get_cell_list_contents((0,0))[0]
+                self.grid.remove_agent(dull_agent)
+                self.agents.remove(dull_agent)
 
         self.grid.agents.shuffle_do("step")
 
