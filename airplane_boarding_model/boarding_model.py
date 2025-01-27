@@ -185,7 +185,7 @@ class BoardingModel(mesa.Model):
         return method_list
 
     def seats_segmented_random(self) -> list[Seat]:
-        segments = 3
+        segments = 4
         passengers = self.number_of_passengers
         rows = len(self.airplane.seat_map)
         
@@ -214,7 +214,7 @@ class BoardingModel(mesa.Model):
         
         #-- secondly we determine the amount of passengers that will inhabit each segment
         seg_length = passengers / segments
-        if seg_length < 54:
+        if seg_length < 43:
             if passengers % segments == 0: # equally devide the amount of passengers in the amount of segments
                 
                 for _ in range(segments):
@@ -234,7 +234,7 @@ class BoardingModel(mesa.Model):
                     else: 
                         passenger_count_per_segment.append(int(seg_length))
         else: 
-            passenger_count_per_segment = [ 0, 0, 0]
+            passenger_count_per_segment = [ 0, 0, 0, 0]
             passengers = self.number_of_passengers
             i = 0
             while passengers > 0:
@@ -242,17 +242,22 @@ class BoardingModel(mesa.Model):
                     passenger_count_per_segment[i] += 1
                     i += 1
                     passengers -= 1
-                elif i == 1:
+                elif i == 1 and passenger_count_per_segment[i] < 42:
                     passenger_count_per_segment[i] += 1
                     i += 1
                     passengers -= 1
-                elif i == 2 and passenger_count_per_segment[i] < 54:
+                elif i == 2 and passenger_count_per_segment[i] < 42:
+                    passenger_count_per_segment[i] += 1
+                    i += 1
+                    passengers -= 1
+                elif i == 3 and passenger_count_per_segment[i] < 42:
                     passenger_count_per_segment[i] += 1
                     i = 0
                     passengers -= 1
                 else:
                     i = 0
-            print(passenger_count_per_segment)
+        
+        
          
         
         #-- thirdly we split the airlplane layout into the respective segments
@@ -278,7 +283,7 @@ class BoardingModel(mesa.Model):
         i = 0
         for segment in passenger_count_per_segment:
             seats_picked = 0
-            max_seats = [60, 60, 54]
+            max_seats = [48, 42, 42, 42]
             
             random_segmented_seats.append([])
             while seats_picked < passenger_count_per_segment[i]:
