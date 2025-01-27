@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 from mesa.visualization import (
     Slider,
     SolaraViz,
@@ -12,7 +13,6 @@ from airplane_boarding_model.boarding_model import BoardingModel
 from airplane_boarding_model.passenger import Passenger
 
 if TYPE_CHECKING:
-    import matplotlib.pyplot as plt
     import mesa
 
         
@@ -62,13 +62,11 @@ model_params = {
     ),
 }
 
-
 model = BoardingModel()
-
 
 def agent_portayal(agent: mesa.Agent):
     portrayal = {
-        "size": 50,
+        "size": 100,
         "alpha": 1.0,
     }
     
@@ -76,20 +74,110 @@ def agent_portayal(agent: mesa.Agent):
         portrayal["color"] = "white"
         return portrayal
     
-    colors = list(mcolors.TABLEAU_COLORS)
-    # color_index = model.passengers.index(agent) % len(colors)
+    colors = list(mcolors.XKCD_COLORS)
     color_index = agent.unique_id % len(colors)
     portrayal["color"] = colors[color_index]
     
     if agent.seated:
-        portrayal["alpha"] = 0.3
+        portrayal["alpha"] = 0.6
     
     return portrayal
 
 
 def post_process_space(ax: plt.Axes):
-    pass
+    airplane = model.airplane
 
+    adjusted_grid_width = airplane.grid_width - 5
+    
+    for row_index in range(airplane.grid_height):  
+        for col_index in range(adjusted_grid_width):  
+            if col_index < 5 or col_index >= adjusted_grid_width - 2:
+                if row_index in [0, 1, 2, 4, 5, 6]:
+                    ax.add_patch(
+                        plt.Rectangle(
+                            (col_index - 0.5, row_index - 0.5),
+                            1,
+                            1,
+                            color="white",
+                            zorder=0,
+                        )
+                    )
+                    continue
+                elif row_index == 3:
+                    ax.add_patch(
+                        plt.Rectangle(
+                            (col_index - 0.5, row_index - 0.5),
+                            1, 
+                            1, 
+                            color="green",
+                            alpha=0.3,
+                            zorder=0,
+                        )
+                    )
+
+            # Gray between the seats
+            if 5 <= col_index <= 61 and (col_index - 5) % 2 == 0:
+                if row_index in [0, 1, 2, 4, 5, 6]:
+                    ax.add_patch(
+                        plt.Rectangle(
+                            (col_index - 0.5, row_index - 0.5),
+                            1, 
+                            1, 
+                            color="gray",
+                            alpha=0.3,
+                            zorder=0,
+                        )
+                    )
+                    continue
+
+            x_offset = -0.5
+            y_offset = -0.5
+
+            # Aisle row color
+            if row_index == 3:
+                ax.add_patch(
+                    plt.Rectangle(
+                        (col_index + x_offset, row_index + y_offset),
+                        1,
+                        1,
+                        color="gray",
+                        alpha=0.3,
+                    )
+                )
+            # Seat rows color
+            else: 
+                ax.add_patch(
+                    plt.Rectangle(
+                        (col_index + x_offset, row_index + y_offset),
+                        1,
+                        1,
+                        color="blue",
+                        alpha=0.3,
+                    )
+                )
+
+    # Visualization of row numbers
+    row_number = 1
+    for col_index in range(6, adjusted_grid_width - 2, 2):
+        ax.text(
+            col_index,
+            -1,
+            str(row_number),
+            fontsize=10,
+            ha="center",
+            va="center",
+            color="black",
+            weight="bold",
+        )
+        row_number += 1
+
+    ax.set_xticks([])
+    ax.set_yticks([])
+
+    ax.set_xlim(-0.5, adjusted_grid_width - 0.5)
+    ax.set_ylim(-0.5, airplane.grid_height - 0.5)
+    ax.set_aspect("equal", adjustable="box")
+    ax.figure.set_size_inches(20, 8)
 
 space_component = make_space_component(
     agent_portrayal=agent_portayal,
