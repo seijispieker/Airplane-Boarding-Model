@@ -124,7 +124,7 @@ def post_process_space(ax: plt.Axes):
                             (col_index - 0.5, row_index - 0.5),
                             1, 
                             1, 
-                            color="blue",
+                            color="gray",
                             alpha=0.3,
                             zorder=0,
                         )
@@ -152,15 +152,15 @@ def post_process_space(ax: plt.Axes):
                         (col_index + x_offset, row_index + y_offset),
                         1,
                         1,
-                        color="gray",
-                        alpha=1,
+                        color="blue",
+                        alpha=0.3,
                         zorder=0,
                     )
                 )
 
     # Visualization of row numbers
     row_number = 1
-    for col_index in range(5, adjusted_grid_width - 2, 2):
+    for col_index in range(6, adjusted_grid_width - 2, 2):
         ax.text(
             col_index,
             -1,
