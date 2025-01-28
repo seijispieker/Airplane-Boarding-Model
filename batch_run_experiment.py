@@ -10,7 +10,7 @@ parameters = {
     "steps_per_second": 2,
     "aisle_speed": 0.8,
     "number_of_passengers": range(round(0.71 * 174), round(0.81 * 174) + 1),
-    "conformance": range(0, 101, 5)
+    "conformance": 100
 }
 
 
@@ -29,6 +29,7 @@ def main():
         os.makedirs("results")
     
     for method in seat_assignment_methods:
+        print(f"Running experiment for seat assignment method: {method}")
         seat_assignment_method(method)
 
 
