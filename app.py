@@ -54,7 +54,7 @@ model_params = {
     "seat_assignment_method": {
         "type": "Select",
         "value": "back_to_front",
-        "values": ["back_to_front", "random", "segmented_random", "outside_in", "steffen_perfect", "debug_B", "debug_C", "debug_D", "debug_double_D"],
+        "values": ["back_to_front", "random", "segmented_random_3", "segmented_random_4", "outside_in", "steffen_perfect", "debug_B", "debug_C", "debug_D", "debug_double_D"],
         "label": "Seat Assignment Method",
     },
     "conformance": Slider(

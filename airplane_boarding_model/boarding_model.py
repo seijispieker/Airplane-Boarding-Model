@@ -204,7 +204,7 @@ class BoardingModel(mesa.Model):
             method_list[random_index_list[int((amount_to_swap-1) / 2)]] , method_list[random_index_list[0]] = method_list[random_index_list[0]], method_list[random_index_list[int((amount_to_swap-1) / 2)]] 
         return method_list
 
-    def seats_segmented_random(self) -> list[Seat]:
+    def seats_segmented_random_4(self) -> list[Seat]:
         segments = 4
         passengers = self.number_of_passengers
         rows = len(self.airplane.seat_map)
@@ -277,8 +277,6 @@ class BoardingModel(mesa.Model):
                     i = 0
         
         
-         
-        
         #-- thirdly we split the airlplane layout into the respective segments
         layout = self.airplane.seat_map
         
@@ -323,6 +321,122 @@ class BoardingModel(mesa.Model):
             reversed_method_list.append(method_list[i])
             i -= 1
         return reversed_method_list
+    
+    def seats_segmented_random_3(self) -> list[Seat]:
+        segments = 3
+        passengers = self.number_of_passengers
+        rows = len(self.airplane.seat_map)
+        
+        passenger_count_per_segment = []
+
+        #-- secondly we determine the length in rows of each segment
+        extra_rows = 0
+        rows_list = []
+        
+        #determening the amount of rows each segments holds
+        if rows % segments == 0: 
+            rows_per_segment = rows / segments
+        else:  # if rows cant be equally segmented one row is added to the amount of needed segments
+            while rows % segments != 0:
+                rows -= 1 
+                extra_rows += 1 
+            rows_per_segment = rows / segments
+
+        for _ in range(segments): # adding the amount of rows to a list where each element is the amount of rows in the segment
+                if extra_rows > 0:
+                    rows_list.append([rows_per_segment + 1])
+                    extra_rows -= 1
+                else: 
+                    rows_list.append([rows_per_segment])   
+        
+        
+        #--first we determine the amount of passengers that will inhabit each segment
+        seg_length = passengers / segments
+        if seg_length < 54:
+            if passengers % segments == 0: # equally devide the amount of passengers in the amount of segments
+                
+                for _ in range(segments):
+                    passenger_count_per_segment.append(int(seg_length))
+
+            else: #devide the amount of passengers in the amount of segments, and add the extra passengers to the first segments
+                extra_passenger = 0 
+                while passengers % segments != 0: #det amount of extra passengers
+                    extra_passenger += 1
+                    passengers -= 1 
+
+                
+                for _ in range(segments): # adding extra passengers to the first segment,  and second if needed 
+                    if extra_passenger > 0:
+                        passenger_count_per_segment.append(int(seg_length + 1))
+                        extra_passenger -= 1
+                    else: 
+                        passenger_count_per_segment.append(int(seg_length))
+        else: 
+            passenger_count_per_segment = [ 0, 0, 0]
+            passengers = self.number_of_passengers
+            i = 0
+            while passengers > 0:
+                if i == 0:
+                    passenger_count_per_segment[i] += 1
+                    i += 1
+                    passengers -= 1
+                elif i == 1:
+                    passenger_count_per_segment[i] += 1
+                    i += 1
+                    passengers -= 1
+                elif i == 2 and passenger_count_per_segment[i] < 54:
+                    passenger_count_per_segment[i] += 1
+                    i = 0
+                    passengers -= 1
+                else:
+                    i = 0            
+         
+        
+        #-- thirdly we split the airlplane layout into the respective segments
+        layout = self.airplane.seat_map
+        
+        segmented_layout = []
+        i = 0
+        row_i = 0
+        for rows_per_segment in rows_list:
+            segmented_layout.append([])
+            for rows in rows_per_segment:
+                rows = int(rows)
+                for _ in range(rows):
+                    j = -3
+                    for _ in range(6):
+                        segmented_layout[i].append(layout[row_i][j])
+                        j += 1
+                    row_i += 1
+            i += 1 
+
+        #for each segment take the passenger_count seats randomly
+        random_segmented_seats = []
+        i = 0
+        for segment in passenger_count_per_segment:
+            seats_picked = 0
+            max_seats = [60, 60, 54]
+            
+            random_segmented_seats.append([])
+            while seats_picked < passenger_count_per_segment[i]:
+                random_seat = self.random.randint(0, max_seats[i] - 1)
+                
+                if segmented_layout[i][random_seat] not in random_segmented_seats[i]:
+                    random_segmented_seats[i].append(segmented_layout[i][random_seat])
+                    seats_picked += 1                               
+            i += 1
+        
+        flatten = lambda xss: [x for xs in xss for x in xs]
+        method_list = flatten(random_segmented_seats)
+        method_list = self.passenger_adherence(method_list)
+        
+        i = -1
+        reversed_method_list= []
+        for _ in range(len(method_list)):
+            reversed_method_list.append(method_list[i])
+            i -= 1
+        return reversed_method_list    
+                
                 
     def seats_outside_in(self) -> list[Seat]:
         segments = 3 # window, middle seat, aile seat
