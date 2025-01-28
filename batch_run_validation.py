@@ -5,14 +5,15 @@ import os
 from airplane_boarding_model.boarding_model import BoardingModel
 
 
-# Seed 3: 438 iterations, took 4:48 minutes on Seiji's Laptop
 parameters = {
-    "seed": range(10),
     "steps_per_second": 2,
     "aisle_speed": 0.8,
     "number_of_passengers": range(29, 175),
     "seat_assignment_method": "random"
 }
+
+
+iteration_per_config = 100
 
 
 def main():
@@ -21,7 +22,24 @@ def main():
     
     if not os.path.exists("results/validation"):
         os.makedirs("results/validation")
-        
+
+    batches = []
+    batch_size = iteration_per_config
+
+    while batch_size > 10:
+        batches.append(range(batch_size - 10, batch_size))
+        batch_size -= 10
+    if batch_size > 0:
+        batches.append(range(batch_size))
+    
+    for batch in reversed(batches):
+        print(f"Running batch {batch}")
+        run_batch(batch)
+
+
+def run_batch(batch):
+    parameters["seed"] = batch
+    
     results = batch_run(
         model_cls=BoardingModel,
         parameters=parameters,
@@ -60,8 +78,9 @@ def main():
         inplace=False
     )
     
-    seat_shuffle_times_df.to_csv("results/validation/seat_shuffle_times.csv")
-    boarding_times_df.to_csv("results/validation/boarding_times.csv")
+    batch_nums = "".join([str(batch_num) for batch_num in batch])
+    seat_shuffle_times_df.to_csv(f"results/validation/seat_shuffle_times_{batch_nums}.csv")
+    boarding_times_df.to_csv(f"results/validation/boarding_times_{batch_nums}.csv")
 
 
 if __name__ == '__main__':
