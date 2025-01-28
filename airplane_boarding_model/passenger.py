@@ -155,12 +155,12 @@ class Passenger(mesa.Agent):
             else:                    
                 self.move_to_target()
                 
-            if not self.shuffle_precedence:
-                first_passenger = self.passengers_shuffling[0]
+                if not self.shuffle_precedence:
+                    first_passenger = self.passengers_shuffling[0]
                 
-                # If passengers without precendence are out of the aisle
-                if first_passenger.all_passengers_shuffling_out_of_aisle():
-                    self.model.frozen_aisle_cells[seat_x] = False    
+                    # If passengers without precendence are out of the aisle
+                    if first_passenger.all_passengers_shuffling_out_of_aisle():
+                        self.model.frozen_aisle_cells[seat_x] = False    
         elif self.waiting_for_shuffling:
             if self.shuffle_precedence:
                 self.seat_shuffle_time += 1
