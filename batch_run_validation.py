@@ -7,7 +7,7 @@ from airplane_boarding_model.boarding_model import BoardingModel
 
 # Seed 3: 438 iterations, took 4:48 minutes on Seiji's Laptop
 parameters = {
-    "seed": range(3),
+    "seed": range(10),
     "steps_per_second": 2,
     "aisle_speed": 0.8,
     "number_of_passengers": range(29, 175),
