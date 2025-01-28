@@ -73,7 +73,7 @@ boarding_times_df_btf["Time (min)"] = boarding_times_df["Time (s)"] / 60
 
 
 compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
-boarding_times_df_seg = boarding_times_df[boarding_times_df.seat_assignment_method == "segmented_random"]
+boarding_times_df_seg = boarding_times_df[boarding_times_df.seat_assignment_method == "segmented_random_3"]
 boarding_times_df_rand = boarding_times_df[boarding_times_df.seat_assignment_method == "random"]
 boarding_times_df_btf = boarding_times_df[boarding_times_df.seat_assignment_method == "back_to_front"]
 boarding_times_df_btf = boarding_times_df_btf[boarding_times_df_btf.conformance == 100]
