@@ -5,10 +5,11 @@ import os
 from airplane_boarding_model.boarding_model import BoardingModel
 
 # 292 sims Took 2:48 minutes to run on Seiji's laptop
+# 146 sims with 8 steps per second took 6:39 minutes to run on Seiji's laptop
 parameters = {
     #TODO: more seeds
-    "seed": range(2),
-    "steps_per_second": 2,
+    "seed": range(1),
+    "steps_per_second": 8,
     "aisle_speed": 0.8,
     "number_of_passengers": range(29, 175),
     "seat_assignment_method": "random",
