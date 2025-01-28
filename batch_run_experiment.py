@@ -12,12 +12,12 @@ parameters = {
     "number_of_passengers": range(round(0.71 * 174), round(0.81 * 174) + 1),
     "seat_assignment_method": [
         "random",
-        "back_to_front",
-        "segmented_random",
+        "segmented_random_3",
+        "segmented_random_4",
         "outside_in",
         "steffen_perfect"
     ],
-    "conformance": range(0, 101)
+    "conformance": range(0, 101, 5)
 }
 
 
