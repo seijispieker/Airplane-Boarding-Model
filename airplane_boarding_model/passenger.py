@@ -15,10 +15,15 @@ class Passenger(mesa.Agent):
     
     Attributes:
         aisle_steps_per_move: The number of steps to move one cell in the aisle.
+        seat_steps_per_move: The number of steps to move one cell in the seat
+            row, out of the seat row or into the seat row.
+        seat_reaction_time: The number of steps for the passenger to react
+            before moving into the seat row, or starting a seat shuffle.
         luggage_time: The number of steps to store luggage.
         assigned_seat: The Seat assigned to the passenger.
         seated: True if the passenger is seated, False otherwise.
         last_move: The number of steps since the last move.
+        arrival_time: The time step when the passenger will arrive at the queue.
         shuffle_out_of_seat: If in a seat shuffle situation, True if the
             passenger is shuffling out of the seat, False otherwise.
         shuffle_into_seat: If in a seat shuffle situation, True if the passenger
@@ -32,6 +37,20 @@ class Passenger(mesa.Agent):
         passengers_shuffling: If in a seat shuffle situation, a list of
             Passenger objects representing the other passengers who are in the
             seat shuffle situation.
+        seat_shuffle_time: The number of steps it takes for the passenger to
+            clear the aisle during a seat shuffle. Starts after the luggage and
+            reaction time. And when the seat shuffle can start. Therefore, the
+            aisle has space for the seat shuffle.
+        seat_shuffle_waiting_time: The number of steps the passenger has waited
+            for a seat shuffle to start because of the aisle being blocked.
+            Therefore excluding the luggage and reaction time.
+        seat_shuffle_type: The type of seat shuffle.
+            - A: No passengers blocking the seat row, therefore no seat shuffle.
+            - B: One passenger blocking the aisle seat.
+            - C: One passenger blocking the middle seat.
+            - D: Two passengers blocking the aisle and middle seat.
+        target_x: The target x grid coordinate of the passenger is moving to.
+        target_y: The target y grid coordinate of the passenger is moving to.
     """
     
     def __init__(
@@ -46,6 +65,7 @@ class Passenger(mesa.Agent):
         self.aisle_steps_per_move = aisle_steps_per_move
         
         # Seat interaction depends on:
+        #   - aisle is free for seat shuffle if needed
         #   - aisle movement speed
         #   - seat movement time
         #   - seat reaction time
@@ -85,13 +105,18 @@ class Passenger(mesa.Agent):
         
         self.assigned_seat = assigned_seat
         self.seated = seated
+        
         self.last_move = aisle_steps_per_move
         self.arrival_time = 0
+        
+        # For seat shuffle
         self.shuffle_out_of_seat = False
         self.shuffle_into_seat = False
         self.waiting_for_shuffling = False
         self.shuffle_precedence = False
         self.passengers_shuffling = []
+        
+        # For data collection
         self.seat_shuffle_time = 0 
         self.seat_shuffle_waiting_time = 0
         self.seat_shuffle_type = "A"
@@ -112,10 +137,12 @@ class Passenger(mesa.Agent):
                 # Set to waiting for shuffling and change target to seat
                 self.shuffle_out_of_seat = False
                 self.waiting_for_shuffling = True
-                self.target_x, self.target_y = self.assigned_seat.grid_coordinate
+                seat_coordinate = self.assigned_seat.grid_coordinate
+                self.target_x, self.target_y = seat_coordinate
             else:
                 self.move_to_target()
         elif self.shuffle_into_seat:
+            # While aisle is blocked increment seat shuffle time
             if (self.shuffle_precedence
                 and not self.all_passengers_shuffling_out_of_aisle()
             ):
@@ -138,6 +165,8 @@ class Passenger(mesa.Agent):
             if self.shuffle_precedence:
                 self.seat_shuffle_time += 1
                 
+                # If blocking passengers are in the aisle, I can start moving
+                # to my seat
                 if self.all_passengers_shuffling_in_aisle():
                     self.waiting_for_shuffling = False
                     self.shuffle_into_seat = True
@@ -147,7 +176,7 @@ class Passenger(mesa.Agent):
                     self.waiting_for_shuffling = False
                     self.shuffle_into_seat = True
                     self.move_to_target()
-        #If at seat row - 1 and target seat row has blocking passengers
+        # If at seat row - 1 and target seat row has blocking passengers
         elif (
             self.pos[1] == aisle_column
             and self.pos[0] == seat_x - 1
@@ -158,7 +187,7 @@ class Passenger(mesa.Agent):
                 self.luggage_time -= 1
                 return
             
-            # If waiting for seat shuffle reaction time
+            # If waiting for seat reaction time
             if self.seat_reaction_time > 0:
                 self.seat_reaction_time -= 1
                 return
@@ -168,36 +197,43 @@ class Passenger(mesa.Agent):
             # If enough space for seat shuffle in aisle
             if (
                 (len(self.passengers_shuffling) == 1
-                and self.model.grid.is_cell_empty((seat_x, aisle_column))
-                and self.model.grid.is_cell_empty((seat_x + 1, aisle_column))
-                and not self.model.frozen_aisle_cells[seat_x]
-                and not self.model.frozen_aisle_cells[seat_x + 1])
+                 and self.model.grid.is_cell_empty((seat_x, aisle_column))
+                 and self.model.grid.is_cell_empty((seat_x + 1, aisle_column))
+                 and not self.model.frozen_aisle_cells[seat_x]
+                 and not self.model.frozen_aisle_cells[seat_x + 1])
                 or
                 (len(self.passengers_shuffling) == 2
-                and self.model.grid.is_cell_empty((seat_x, aisle_column))
-                and self.model.grid.is_cell_empty((seat_x + 1, aisle_column))
-                and self.model.grid.is_cell_empty((seat_x + 2, aisle_column))
-                and not self.model.frozen_aisle_cells[seat_x]
-                and not self.model.frozen_aisle_cells[seat_x + 1]
-                and not self.model.frozen_aisle_cells[seat_x + 1])
+                 and self.model.grid.is_cell_empty((seat_x, aisle_column))
+                 and self.model.grid.is_cell_empty((seat_x + 1, aisle_column))
+                 and self.model.grid.is_cell_empty((seat_x + 2, aisle_column))
+                 and not self.model.frozen_aisle_cells[seat_x]
+                 and not self.model.frozen_aisle_cells[seat_x + 1]
+                 and not self.model.frozen_aisle_cells[seat_x + 1])
             ):
-                for x_offset, passenger_shuffling in enumerate(reversed(self.passengers_shuffling), start=1):
-                    passenger_shuffling.seated = False
-                    passenger_shuffling.assigned_seat.occupied = False
-                    passenger_shuffling.target_x += x_offset
-                    passenger_shuffling.target_y = aisle_column
-                    passenger_shuffling.shuffle_out_of_seat = True
-                    passenger_shuffling.shuffle_precedence = False
-                    passenger_shuffling.seat_steps_per_move = self.seat_steps_per_move
-                    passenger_shuffling.passengers_shuffling = []
-                    passenger_shuffling.passengers_shuffling.append(self)
+                shuffle_ordering = enumerate(
+                    reversed(self.passengers_shuffling),
+                    start=1
+                )
+                
+                for x_offset, blocking_passenger in shuffle_ordering:
+                    blocking_passenger.seated = False
+                    blocking_passenger.assigned_seat.occupied = False
+                    blocking_passenger.target_x += x_offset
+                    blocking_passenger.target_y = aisle_column
+                    blocking_passenger.shuffle_out_of_seat = True
+                    blocking_passenger.shuffle_precedence = False
+                    blocking_passenger.seat_steps_per_move = self.seat_steps_per_move
+                    blocking_passenger.passengers_shuffling = []
+                    blocking_passenger.passengers_shuffling.append(self)
 
                 # Set Seat shuffle type                    
                 if len(self.passengers_shuffling) == 2:
-                    self.seat_shuffle_type = "D"  
-                
+                    self.seat_shuffle_type = "D"
                 if len(self.passengers_shuffling) == 1:
-                    if abs(self.passengers_shuffling[0].assigned_seat.seat_column - 1 - aisle_column) == 1:
+                    blocking_passenger = self.passengers_shuffling[0]
+                    seat_col = blocking_passenger.assigned_seat.seat_column - 1
+                    
+                    if abs(seat_col - aisle_column) == 1:
                         self.seat_shuffle_type = "B"
                     else:
                          self.seat_shuffle_type = "C"
@@ -216,10 +252,12 @@ class Passenger(mesa.Agent):
                 self.seated = True
                 self.assigned_seat.occupied = True
                 
+                # If precedence in seat shuffle situation
                 if self.shuffle_precedence:
                     if not self.all_passengers_shuffling_out_of_aisle():
                         self.seat_shuffle_time += 1
                     else:
+                        # To stop counting seat shuffle time
                         self.shuffle_precedence = False
                 
                 return
@@ -229,7 +267,7 @@ class Passenger(mesa.Agent):
                 self.luggage_time -= 1
                 return
             
-            # If waiting for seat shuffle reaction time
+            # If waiting for seat reaction time
             if self.seat_reaction_time > 0:
                 self.seat_reaction_time -= 1
                 return
@@ -248,7 +286,8 @@ class Passenger(mesa.Agent):
     
     def move_to_target(self):
         """Move to target. Movement is prioritized in x direction when in the
-        aisle and in y direction when in the assigned seat row.
+        aisle and in y direction when in the assigned seat row. Checks if the
+        move is possible (cell is empty and not frozen).
         """
         aisle_column = self.model.airplane.aisle_column
         

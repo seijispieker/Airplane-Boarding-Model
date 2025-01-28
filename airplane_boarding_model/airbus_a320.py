@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 class Seat:
     """A class for modeling a seat in an airplane.
-    
+
     Attributes:
         seat_row: The row number of the seat starting from 1.
         seat_column: The column number of the seat starting from 1 including
@@ -22,12 +22,13 @@ class Seat:
         assigned_passenger: The Passenger assigned to the seat.
         occupied: True if the seat is occupied, False otherwise.
     """
-    
-    def __init__(self,
-                 seat_row: int,
-                 seat_column: int,
-                 grid_coordinate: int,
-                 assigned_passenger: Passenger=None
+
+    def __init__(
+            self,
+            seat_row: int,
+            seat_column: int,
+            grid_coordinate: int,
+            assigned_passenger: Passenger=None
         ):
         """Initialize a Seat object."""
         self.seat_row = seat_row
