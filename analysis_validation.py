@@ -12,6 +12,10 @@ def main():
     plot_number_of_passengers_boarding_time(boarding_times_df)
     plot_shuffle_time_boxplot(seat_shuffle_times_df)
     check_model(boarding_times_df, compare_df, n_iterations= 1000)
+    plot_shuffle_time_comparison(
+    seat_shuffle_times_df,
+    real_data_path="comparison_data/seat_shuffle_data.csv"
+)
 
     
 def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame):
@@ -65,6 +69,70 @@ def plot_shuffle_time_boxplot(seat_shuffle_times_df: pd.DataFrame):
     plt.xlabel("Shuffle Type (A/B/C/D)")
     plt.ylabel("Time (s)")
     plt.grid(True, linestyle=":", linewidth=0.7)
+    plt.show()
+
+def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_path: str):
+    """
+    Plots a boxplot of seat shuffle times categorized by shuffle type (A, B, C, D).
+    """
+    # Read real data
+    real_data_df = pd.read_csv(real_data_path)
+
+    # Map seat shuffle numbers to shuffle types
+    shuffle_type_mapping = {1: "A", 4: "B", 5: "C", 9: "D"}
+    real_data_df["Shuffle Type"] = real_data_df["seat_shuffles"].map(shuffle_type_mapping)
+    shuffle_types = ["A", "B", "C", "D"]
+
+    plt.figure(figsize=(10, 6))
+    bar_width = 0.35
+    x_positions = range(1, len(shuffle_types) + 1)
+
+    # Plot simulated data boxplots
+    for i, shuffle_type in enumerate(shuffle_types, start=1):
+        simulated_data = seat_shuffle_times_df.loc[
+            seat_shuffle_times_df["Seat shuffle type (A/B/C/D)"] == shuffle_type,
+            "Seat shuffle time (s)"
+        ]
+        plt.boxplot(
+            simulated_data,
+            positions=[i - bar_width / 2],
+            widths=0.3,
+            notch=True,
+            patch_artist=True,
+            boxprops=dict(facecolor="lightblue", color="blue"),
+            medianprops=dict(color="blue"),
+            flierprops=dict(markerfacecolor="blue", markeredgecolor="blue", markersize=5),
+        )
+
+    # Plot field data boxplots
+    for i, shuffle_type in enumerate(shuffle_types, start=1):
+        if shuffle_type in real_data_df["Shuffle Type"].values:
+            row = real_data_df[real_data_df["Shuffle Type"] == shuffle_type].iloc[0]
+            field_data = [row["field 50% lower"], row["field 50% upper"]]
+            plt.boxplot(
+                field_data,
+                positions=[i + bar_width / 2],
+                widths=0.3,
+                notch=True,
+                patch_artist=True,
+                boxprops=dict(facecolor="red", color="darkred"),
+                medianprops=dict(color="darkred"),
+                flierprops=dict(markerfacecolor="darkred", markeredgecolor="darkred", markersize=5),
+            )
+
+    plt.xticks(range(1, len(shuffle_types) + 1), shuffle_types)
+    plt.title("Seat Shuffle Times by Type (Comparison)")
+    plt.xlabel("Shuffle Type (A/B/C/D)")
+    plt.ylabel("Time (s)")
+    plt.legend(
+        handles=[
+            plt.Line2D([0], [0], color="blue", lw=2, label="Simulated Data"),
+            plt.Line2D([0], [0], color="darkred", lw=2, label="Field Data"),
+        ],
+        loc="upper left",
+    )
+    plt.grid(True, linestyle=":", linewidth=0.7)
+    plt.tight_layout()
     plt.show()
 
 def check_model(df1, df2, n_iterations=10000):
