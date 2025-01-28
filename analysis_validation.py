@@ -87,6 +87,9 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_
     bar_width = 0.35
     x_positions = range(1, len(shuffle_types) + 1)
 
+    # Count amount of times each shuffle type
+    shuffle_counts = seat_shuffle_times_df["Seat shuffle type (A/B/C/D)"].value_counts()
+
     # Plot simulated data boxplots
     for i, shuffle_type in enumerate(shuffle_types, start=1):
         simulated_data = seat_shuffle_times_df.loc[
@@ -103,6 +106,10 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_
             medianprops=dict(color="blue"),
             flierprops=dict(markerfacecolor="blue", markeredgecolor="blue", markersize=5),
         )
+
+        count = shuffle_counts.get(shuffle_type, 0)
+        plt.text(i - bar_width / 2, max(simulated_data, default=0) + 1,
+                 f"n={count}", ha="center", fontsize=10, color="blue")
 
     # Plot field data boxplots
     for i, shuffle_type in enumerate(shuffle_types, start=1):
