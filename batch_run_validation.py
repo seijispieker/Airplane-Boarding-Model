@@ -9,7 +9,7 @@ from airplane_boarding_model.boarding_model import BoardingModel
 parameters = {
     #TODO: more seeds
     "seed": range(1),
-    "steps_per_second": 8,
+    "steps_per_second": 2,
     "aisle_speed": 0.8,
     "number_of_passengers": range(29, 175),
     "seat_assignment_method": "random",
