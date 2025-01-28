@@ -4,8 +4,8 @@ import os
 
 from airplane_boarding_model.boarding_model import BoardingModel
 
+
 parameters = {
-    # TODO: more seeds
     "seed": range(1),
     "steps_per_second": 2,
     "aisle_speed": 0.8,
@@ -17,8 +17,7 @@ parameters = {
         "outside_in",
         "steffen_perfect"
     ],
-    # TODO: change steps to 1
-    "conformance": range(0, 101, 10)
+    "conformance": range(0, 101)
 }
 
 
@@ -35,7 +34,7 @@ def main():
         number_processes=os.cpu_count(),
         data_collection_period=-1,
         iterations=1,
-        max_steps=parameters["steps_per_second"] * 60 * 50,
+        max_steps=parameters["steps_per_second"] * 60 * 100,
         display_progress=True,
     )
     
