@@ -16,7 +16,8 @@ class Seat:
     
     Attributes:
         seat_row: The row number of the seat starting from 1.
-        seat_column: The column number of the seat starting from 1.
+        seat_column: The column number of the seat starting from 1 including
+            the aisle column.
         grid_coordinate: The grid coordinate of the seat.
         assigned_passenger: The Passenger assigned to the seat.
         occupied: True if the seat is occupied, False otherwise.
@@ -36,10 +37,10 @@ class Seat:
         self.occupied = assigned_passenger is not None
     
     def __str__(self) -> str:
-        return f"{self.seat_row + 1}{chr(self.seat_column + 65)}"
+        return f"{self.seat_row}{chr(self.seat_column + 65)}"
 
     def __repr__(self) -> str:
-        return f"{self.seat_row + 1}{chr(self.seat_column + 65)}"
+        return f"{self.seat_row}{chr(self.seat_column + 65)}"
 
 
 class AirbusA320:
@@ -47,7 +48,7 @@ class AirbusA320:
     
     Attributes:
         seat_rows: The number of rows of seats.
-        columns: The number of columns of seats including the aisle.
+        columns: The number of columns of seats including the aisle column.
         number_of_seats: The total number of seats.
         entrance_length: The number of grid cells for the entrance.
         aisle_length: The number of grid cells for the aisle.
@@ -71,19 +72,27 @@ class AirbusA320:
         self.aisle_column = 3 # Middle column
         self.grid_width = 2 * self.entrance_length + self.aisle_length
         self.grid_height = self.columns
-        self.seat_map, self.grid_map,  = self.create_seat_grid_map()
+        self.seat_map, self.grid_map = self.create_seat_grid_map()
         self.entrance = (0, self.aisle_column)
 
-    def create_seat_grid_map(self) -> tuple[list[list[Seat | None]], list[list[Seat | None]]]:
+    def create_seat_grid_map(self) -> tuple[list[list[Seat | None]],
+                                            list[list[Seat | None]]]:
         """Create seat and grid maps for the airplane."""
         seat_map = []
-        grid_map = [[None for _ in range(self.grid_height)] for _ in range(self.grid_width)]
+        grid_map = []
+        
+        for _ in range(self.grid_width):
+            grid_map.append([None for _ in range(self.grid_height)])
         
         for row_index in range(self.seat_rows):
             seat_row = []
+            
             for column in range(self.columns):
                 if column != self.aisle_column:
-                    seat_coordinate = (self.entrance_length + row_index * 2, column)
+                    seat_coordinate = (
+                        self.entrance_length + row_index * 2,
+                        column
+                    )
                     seat = Seat(
                         seat_row=row_index + 1,
                         seat_column=column + 1,
