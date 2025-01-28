@@ -24,7 +24,7 @@ def main():
     results = batch_run(
         model_cls=BoardingModel,
         parameters=parameters,
-        number_processes=4,
+        number_processes=os.cpu_count(),
         data_collection_period=-1,
         iterations=1,
         max_steps=parameters["steps_per_second"] * 60 * 50,
