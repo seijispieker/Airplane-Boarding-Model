@@ -21,6 +21,20 @@ To launch the interactive server, run:
 
 ```
     $ python -m unittest tests/*.py 
+
+    For test_backtofront_method.py
+
+    $ python -m unittest tests.test_backtofront_method.SeatsBackToFrontTestCase
+
+    For test_steffenperfect_method.py
+
+    $ python -m unittest tests.test_steffenperfect_method.SeatsSteffenPerfectTestCase
+
+    For test_outsidein_method.py
+
+    $ python -m unittest tests.test_outsidein_method.
+    SeatsOutsideInTestCase
+
 ```
 
 ## Grid
