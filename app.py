@@ -38,23 +38,23 @@ model_params = {
         step=0.1,
         dtype=float
     ),
-    # "occupancy": Slider(
-    #     label="Occupancy (0-1)",
-    #     value=0.85,
-    #     min=0,
-    #     max=1,
-    #     step=0.05,
-    #     dtype=float
-    # ),
-    "number_of_passengers": {
-        "type": "InputText",
-        "value": 174,
-        "label": "Number of Passengers",
-    },
+    "occupancy": Slider(
+        label="Occupancy (0-1)",
+        value=0.85,
+        min=0,
+        max=1,
+        step=0.05,
+        dtype=float
+    ),
+    # "number_of_passengers": {
+    #     "type": "InputText",
+    #     "value": 174,
+    #     "label": "Number of Passengers",
+    # },
     "seat_assignment_method": {
         "type": "Select",
         "value": "back_to_front",
-        "values": ["back_to_front", "random", "segmented_random", "outside_in", "steffen_perfect", "debug_B", "debug_C", "debug_D"],
+        "values": ["back_to_front", "random", "segmented_random", "outside_in", "steffen_perfect", "debug_B", "debug_C", "debug_D", "debug_double_D"],
         "label": "Seat Assignment Method",
     },
     "conformance": Slider(
@@ -186,6 +186,7 @@ def post_process_space(ax: plt.Axes):
     ax.set_aspect("equal", adjustable="box")
     ax.figure.set_size_inches(20, 8)
 
+
 space_component = make_space_component(
     agent_portrayal=agent_portayal,
     post_process=post_process_space,
@@ -197,4 +198,6 @@ page = SolaraViz(
     components=[space_component],
     model_params=model_params,
     name="Airplane Boarding Model",
+    render_interval=2,
+    play_interval=1
 )
