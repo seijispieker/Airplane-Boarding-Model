@@ -44,20 +44,45 @@ class Passenger(mesa.Agent):
         """Initialize a Passenger object."""
         super().__init__(model)
         self.aisle_steps_per_move = aisle_steps_per_move
-        # based on Schultz 2008:
-        seat_movement_time = self.model.random.triangular(low=1.8, high=3.0, mode=2.4)
-        self.seat_steps_per_move = round(seat_movement_time * model.steps_per_second)
-        # based on Schultz 2008:
-        seat_shuffle_reaction_time = self.model.random.triangular(low=6, high=20, mode=9)
-        self.seat_shuffle_reaction_time = round(seat_shuffle_reaction_time * model.steps_per_second)
-        # alpha and beta based on Schultz 2018:
-        single_luggage_time = self.model.random.weibullvariate(alpha=16, beta=1.7)
+        
+        # Seat interaction depends on:
+        #   - aisle movement speed
+        #   - seat movement time
+        #   - seat reaction time
+        #   - luggage time x number of luggage items
+        
+        # Based on Schultz 2008/2013:
+        seat_movement_time = self.model.random.triangular(
+            low=1.8,
+            high=3.0,
+            mode=2.4
+        )
+        seat_steps_per_move = round(seat_movement_time * model.steps_per_second)
+        self.seat_steps_per_move = seat_steps_per_move
+        
+        # Based on Schultz 2008/2013:
+        seat_reaction_time = self.model.random.triangular(
+            low=6,
+            high=20, 
+            mode=9
+        )
+        seat_reaction_time = round(seat_reaction_time * model.steps_per_second)
+        self.seat_reaction_time = seat_reaction_time
+        
+        # Alpha and beta based on Schultz 2018:
+        single_luggage_time = self.model.random.weibullvariate(
+            alpha=16,
+            beta=1.7
+        )
+        # Distribution of luggage items based on Schultz 2008/2013:
         luggage_items = self.model.random.choices(
             population=[1, 2, 3],
             weights=[0.6, 0.3, 0.1],
             k=1
         )[0]
-        self.luggage_time = round(luggage_items * single_luggage_time * model.steps_per_second)
+        luggage_time = luggage_items * single_luggage_time
+        self.luggage_time = round(luggage_time * model.steps_per_second)
+        
         self.assigned_seat = assigned_seat
         self.seated = seated
         self.last_move = aisle_steps_per_move
@@ -130,8 +155,8 @@ class Passenger(mesa.Agent):
                 return
             
             # If waiting for seat shuffle reaction time
-            if self.seat_shuffle_reaction_time > 0:
-                self.seat_shuffle_reaction_time -= 1
+            if self.seat_reaction_time > 0:
+                self.seat_reaction_time -= 1
                 return
             
             self.passengers_shuffling = self.get_blocking_passengers()
@@ -154,6 +179,7 @@ class Passenger(mesa.Agent):
                     passenger_shuffling.target_y = aisle_column
                     passenger_shuffling.shuffle_out_of_seat = True
                     passenger_shuffling.shuffle_precedence = False
+                    passenger_shuffling.seat_steps_per_move = self.seat_steps_per_move
                     passenger_shuffling.passengers_shuffling = []
                     passenger_shuffling.passengers_shuffling.append(self)
 
@@ -186,10 +212,10 @@ class Passenger(mesa.Agent):
                 return
             
             # TODO: ?
-            # # If waiting for seat shuffle reaction time
-            # if self.seat_shuffle_reaction_time > 0:
-            #     self.seat_shuffle_reaction_time -= 1
-            #     return
+            # If waiting for seat shuffle reaction time
+            if self.seat_reaction_time > 0:
+                self.seat_reaction_time -= 1
+                return
             
             if self.pos[1] == aisle_column:
                 self.seat_shuffle_time += 1
@@ -230,12 +256,17 @@ class Passenger(mesa.Agent):
             target = (self.pos[0] + x_dir, self.pos[1] + y_dir)
         
         # TODO: or mauybe after if statement
-        self.last_move += 1
+        if not (self.shuffle_into_seat or self.shuffle_out_of_seat or self.waiting_for_shuffling):
+            self.last_move += 1
             
         if not self.model.grid.is_cell_empty(target):
             return
         
-        # self.last_move += 1
+        if (
+            (self.shuffle_into_seat or self.shuffle_out_of_seat)
+            and not self.waiting_for_shuffling
+        ):
+            self.last_move += 1
         
         seat_x = self.assigned_seat.grid_coordinate[0]
         # If not in the aisle or in the aisle and moving into the seat row,
