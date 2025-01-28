@@ -9,14 +9,15 @@ def main():
     seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
     compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
 
-    plot_number_of_passengers_boarding_time(boarding_times_df)
-    plot_shuffle_time_boxplot(seat_shuffle_times_df)
-    check_model(boarding_times_df, compare_df, n_iterations= 1000)
+    #plot_number_of_passengers_boarding_time(boarding_times_df)
+    #plot_shuffle_time_boxplot(seat_shuffle_times_df)
+    #check_model(boarding_times_df, compare_df, n_iterations= 1000)
     plot_shuffle_time_comparison(
     seat_shuffle_times_df,
     real_data_path="comparison_data/seat_shuffle_data.csv"
 )
 
+    plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
     
 def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame):
     """
@@ -74,8 +75,8 @@ def plot_shuffle_time_boxplot(seat_shuffle_times_df: pd.DataFrame):
 def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_path: str):
     """
     Plots a boxplot of seat shuffle times categorized by shuffle type (A, B, C, D).
+    Moves the count and percentage data to the legend instead of the graph itself.
     """
-    # Read real data
     real_data_df = pd.read_csv(real_data_path)
 
     # Map seat shuffle numbers to shuffle types
@@ -87,8 +88,15 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_
     bar_width = 0.35
     x_positions = range(1, len(shuffle_types) + 1)
 
-    # Count amount of times each shuffle type
-    shuffle_counts = seat_shuffle_times_df["Seat shuffle type (A/B/C/D)"].value_counts()
+    total_cases = len(seat_shuffle_times_df)
+
+    type_counts = seat_shuffle_times_df["Seat shuffle type (A/B/C/D)"].value_counts()
+
+    # Waiting time > 0
+    nonzero_counts = seat_shuffle_times_df[seat_shuffle_times_df["Seat shuffle time (s)"] > 0] \
+        .groupby("Seat shuffle type (A/B/C/D)")["Seat shuffle time (s)"].count()
+
+    legend_entries = ["Counts & Percentages:"]
 
     # Plot simulated data boxplots
     for i, shuffle_type in enumerate(shuffle_types, start=1):
@@ -107,10 +115,6 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_
             flierprops=dict(markerfacecolor="blue", markeredgecolor="blue", markersize=5),
         )
 
-        count = shuffle_counts.get(shuffle_type, 0)
-        plt.text(i - bar_width / 2, max(simulated_data, default=0) + 1,
-                 f"n={count}", ha="center", fontsize=10, color="blue")
-
     # Plot field data boxplots
     for i, shuffle_type in enumerate(shuffle_types, start=1):
         if shuffle_type in real_data_df["Shuffle Type"].values:
@@ -127,6 +131,12 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_
                 flierprops=dict(markerfacecolor="darkred", markeredgecolor="darkred", markersize=5),
             )
 
+    for shuffle_type in shuffle_types:
+        total = type_counts.get(shuffle_type, 0)
+        nonzero = nonzero_counts.get(shuffle_type, 0)
+        percentage = (nonzero / total_cases * 100) if total_cases > 0 else 0  
+        legend_entries.append(f"{shuffle_type}: n={nonzero}, {percentage:.1f}%")
+
     plt.xticks(range(1, len(shuffle_types) + 1), shuffle_types)
     plt.title("Seat Shuffle Times by Type (Comparison)")
     plt.xlabel("Shuffle Type (A/B/C/D)")
@@ -135,9 +145,79 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_
         handles=[
             plt.Line2D([0], [0], color="blue", lw=2, label="Simulated Data"),
             plt.Line2D([0], [0], color="darkred", lw=2, label="Field Data"),
+            plt.Line2D([0], [0], color="black", lw=0, label="\n".join(legend_entries))  
         ],
         loc="upper left",
+        fontsize=9,
+        framealpha=0.8,
     )
+    plt.grid(True, linestyle=":", linewidth=0.7)
+    plt.tight_layout()
+    plt.show()
+
+
+def plot_seat_shuffle_waiting_times(seat_shuffle_times_df: pd.DataFrame):
+    """
+    Plots a boxplot for seat shuffle waiting times categorized by shuffle type (B, C, D),
+    excluding cases where waiting time is 0. The legend contains the amount and adjusted percentages.
+    Also adds the total count and percentage of all seat shuffle cases > 0.
+    """
+    shuffle_types = ["B", "C", "D"]
+
+    plt.figure(figsize=(10, 6))
+
+    # Filter out A
+    filtered_df = seat_shuffle_times_df[seat_shuffle_times_df["Seat shuffle type (A/B/C/D)"].isin(shuffle_types)]
+    total_non_A_count = len(filtered_df)
+
+    # Count cases where waiting time > 0 for each type
+    waiting_counts = (
+        filtered_df[filtered_df["Seat shuffle waiting time (s)"] > 0]
+        .groupby("Seat shuffle type (A/B/C/D)")["Seat shuffle waiting time (s)"]
+        .count()
+    )
+
+    legend_texts = []
+    boxplot_data = []
+    total_waiting_cases = 0 
+
+    for shuffle_type in shuffle_types:
+        waiting_data = filtered_df.loc[
+            (filtered_df["Seat shuffle type (A/B/C/D)"] == shuffle_type) &
+            (filtered_df["Seat shuffle waiting time (s)"] > 0),
+            "Seat shuffle waiting time (s)"
+        ]
+
+        # Only for waiting time > 0
+        boxplot_data.append(waiting_data.tolist())
+
+        waiting_count = waiting_counts.get(shuffle_type, 0)
+        total_waiting_cases += waiting_count  
+        percentage = (waiting_count / total_non_A_count * 100) if total_non_A_count > 0 else 0
+
+        legend_texts.append(f"{shuffle_type} > 0: n={waiting_count}, {percentage:.1f}%") 
+
+    # Calculate total percentage
+    total_percentage = (total_waiting_cases / total_non_A_count * 100) if total_non_A_count > 0 else 0
+
+    legend_texts.append(f"Total > 0: n={total_waiting_cases}, {total_percentage:.1f}%")
+
+    boxprops = dict(facecolor="lightblue", color="blue")
+    medianprops = dict(color="blue", linewidth=2)
+    flierprops = dict(marker="o", color="blue", markersize=5)
+
+    plt.boxplot(boxplot_data, patch_artist=True, boxprops=boxprops, medianprops=medianprops, flierprops=flierprops)
+    plt.xticks(range(1, len(shuffle_types) + 1), shuffle_types)
+    plt.xlabel("Shuffle Type (B/C/D)")
+    plt.ylabel("Waiting Time (s)")
+    plt.title("Seat Shuffle Waiting Times by Type")
+
+    plt.text(
+        1.05, 0.95, "\n".join(legend_texts), transform=plt.gca().transAxes,
+        fontsize=10, verticalalignment="top",
+        bbox=dict(facecolor="white", alpha=0.8, edgecolor="black")
+    )
+
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.tight_layout()
     plt.show()
