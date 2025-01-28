@@ -93,6 +93,7 @@ class Passenger(mesa.Agent):
         self.shuffle_precedence = False
         self.passengers_shuffling = []
         self.seat_shuffle_time = 0 
+        self.seat_shuffle_waiting_time = 0
         self.seat_shuffle_type = "A"
         
         if assigned_seat is not None:
@@ -197,6 +198,8 @@ class Passenger(mesa.Agent):
                 self.waiting_for_shuffling = True
                 self.seat_shuffle_time = 1
                 self.model.frozen_aisle_cells[self.pos[0] + 1] = True
+            else:
+                self.seat_shuffle_waiting_time += 1      
         # No seat shuffle situation
         # If at seat row
         elif self.pos[0] == seat_x:

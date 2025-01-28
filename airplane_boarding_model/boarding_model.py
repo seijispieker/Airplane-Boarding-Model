@@ -114,6 +114,7 @@ class BoardingModel(mesa.Model):
             },
             agent_reporters={
                 "Seat shuffle time (s)": lambda passenger: passenger.seat_shuffle_time / self.steps_per_second,
+                "Seat shuffle waiting time (s)": lambda passenger: passenger.seat_shuffle_waiting_time / self.steps_per_second,
                 "Seat shuffle type (A/B/C/D)": "seat_shuffle_type",
             }
         )
