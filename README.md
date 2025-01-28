@@ -21,6 +21,10 @@ To launch the interactive server, run:
 
 ```
     $ python -m unittest tests/*.py 
+
+    For test_backtofront_method..py
+
+    $ python -m unittest tests.test_backtofront_method.SeatsBackToFrontTestCase
 ```
 
 ## Grid
