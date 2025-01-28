@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
+import seaborn as sns
 
 
 def check_model(df1, df2, n_iterations=10000):
@@ -25,6 +26,8 @@ def check_model(df1, df2, n_iterations=10000):
     #bootstrapping slope
     slopes_model = bootstrap_slopes(df1, "number_of_passengers", "Time (s)", y_multiplyer= 60, n_iterations= n_iterations)
     slopes_real = bootstrap_slopes(df2, "people", "boarding time", n_iterations= n_iterations)
+    lower, upper = np.percentile(slopes_model, [2.5, 97.5])
+    print(lower, upper)
 
     #checking range of bootstrapped slopes
     difference = slopes_model - slopes_real
@@ -38,7 +41,7 @@ def check_model(df1, df2, n_iterations=10000):
     return slope
 
 
-def plot_graph_trend(df, x, y, show_all = "no", linestyle="--", color="red", label="trend"):
+def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", label="trend", marker="x"):
     """
     add a plot of wanted columns of a dataframe.
     show_all = "yes" for scatterplot of all datapoints
@@ -48,7 +51,9 @@ def plot_graph_trend(df, x, y, show_all = "no", linestyle="--", color="red", lab
     #trendline model data
     trend = np.polyfit(df[x], df[y], 1)
     trendline = np.polyval(trend, passenger_counts)
-    plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
+
+    #plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
+    sns.regplot(data=df, scatter=False, x=x, y=y, label= label, color=color)
 
     if show_all == "yes":
         plt.scatter(
@@ -56,8 +61,9 @@ def plot_graph_trend(df, x, y, show_all = "no", linestyle="--", color="red", lab
             df[y],
             color=color,
             alpha=0.5,
-            label="all data",
+            label=f"all data {label}",
             s=10,
+            marker=marker
         )
 
 boarding_times_df = pd.read_csv("results/validation/boarding_times.csv")
@@ -69,11 +75,13 @@ boarding_times_df_seg = boarding_times_df[boarding_times_df.seat_assignment_meth
 boarding_times_df_rand = boarding_times_df[boarding_times_df.seat_assignment_method == "random"]
 
 plt.figure(figsize=(8, 6))
-plot_graph_trend(compare_df, "people", "boarding time", color= "black")
-plot_graph_trend(boarding_times_df_seg, "number_of_passengers", "Time (min)", color= "red")
-plot_graph_trend(boarding_times_df_rand, "number_of_passengers", "Time (min)", color= "green")
+plot_graph_trend(compare_df, "people", "boarding time", color= "black", label="field data")
+plot_graph_trend(boarding_times_df_seg, "number_of_passengers", "Time (min)", color= "red", label="sim segmented", marker="p")
+plot_graph_trend(boarding_times_df_rand, "number_of_passengers", "Time (min)", color= "green", label="sim random", marker="*")
 
-slope = check_model(boarding_times_df, compare_df)
+slope = check_model(boarding_times_df_seg, compare_df, n_iterations=  100)
+print(slope)
+slope = check_model(boarding_times_df_rand, compare_df, n_iterations=  100)
 print(slope)
 plt.legend()
 plt.show()
