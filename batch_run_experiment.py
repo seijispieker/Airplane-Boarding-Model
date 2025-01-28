@@ -18,7 +18,7 @@ parameters = {
         "steffen_perfect"
     ],
     # TODO: change steps to 1
-    "conformance": range(50, 101, 10)
+    "conformance": range(0, 101, 10)
 }
 
 
