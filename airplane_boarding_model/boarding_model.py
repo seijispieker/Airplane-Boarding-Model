@@ -431,37 +431,122 @@ class BoardingModel(mesa.Model):
     def seats_debug_B(self) -> list[Seat]:
         self.number_of_passengers = 10
         self.passengers = mesa.agent.AgentSet(self.passengers[:10], random=self.random)
+        
+        aisle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[0][4]],
+            passengers=[aisle_passenger]
+        )
+        self.grid.place_agent(
+            agent=aisle_passenger,
+            pos=aisle_passenger.assigned_seat.grid_coordinate
+        )
+        
         for i, passenger in enumerate(self.passengers):
-            if i < 1:
-                passenger.arrival_time = 1 + i * self.steps_per_second
-            else:
-                passenger.arrival_time = 1 + i * self.steps_per_second + 10 * self.steps_per_second
-            
+            passenger.arrival_time = 1 + i * self.steps_per_second
+            passenger.seat_reaction_time = 2 * self.steps_per_second
             passenger.luggage_time = 2 * self.steps_per_second
-        return [self.airplane.seat_map[0][4], self.airplane.seat_map[0][5]] + self.airplane.seats_list()[-8:]
+            
+        return [self.airplane.seat_map[0][5]] + self.airplane.seats_list()[-8:]
     
     def seats_debug_C(self) -> list[Seat]:
         self.number_of_passengers = 10
         self.passengers = mesa.agent.AgentSet(self.passengers[:10], random=self.random)
+        
+        middle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[0][5]],
+            passengers=[middle_passenger]
+        )
+        self.grid.place_agent(
+            agent=middle_passenger,
+            pos=middle_passenger.assigned_seat.grid_coordinate
+        )
+        
         for i, passenger in enumerate(self.passengers):
-            if i < 1:
-                passenger.arrival_time = 1 + i * self.steps_per_second
-            else:
-                passenger.arrival_time = 1 + i * self.steps_per_second + 10 * self.steps_per_second
+            passenger.arrival_time = 1 + i * self.steps_per_second
+            passenger.seat_reaction_time = 2 * self.steps_per_second
             passenger.luggage_time = 2 * self.steps_per_second
-        return [self.airplane.seat_map[0][5], self.airplane.seat_map[0][6]] + self.airplane.seats_list()[-8:]
+            
+        return [self.airplane.seat_map[0][6]] + self.airplane.seats_list()[-8:]
     
     def seats_debug_D(self) -> list[Seat]:
         self.number_of_passengers = 10
         self.passengers = mesa.agent.AgentSet(self.passengers[:10], random=self.random)
+        
+        aisle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[0][4]],
+            passengers=[aisle_passenger]
+        )
+        self.grid.place_agent(
+            agent=aisle_passenger,
+            pos=aisle_passenger.assigned_seat.grid_coordinate
+        )
+        middle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[0][5]],
+            passengers=[middle_passenger]
+        )
+        self.grid.place_agent(
+            agent=middle_passenger,
+            pos=middle_passenger.assigned_seat.grid_coordinate
+        )
+        
         for i, passenger in enumerate(self.passengers):
-            # print(passenger.unique_id)
-            if i < 2:
-                passenger.arrival_time = 1 + i * self.steps_per_second
-            else:
-                passenger.arrival_time = 1 +i * self.steps_per_second + 10 * self.steps_per_second
+            passenger.arrival_time = 1 + i * self.steps_per_second
+            passenger.seat_reaction_time = 2 * self.steps_per_second
             passenger.luggage_time = 2 * self.steps_per_second
-        return [self.airplane.seat_map[0][5], self.airplane.seat_map[0][4], self.airplane.seat_map[0][6]] + self.airplane.seats_list()[-7:]
+            
+        return [self.airplane.seat_map[0][6]] + self.airplane.seats_list()[-7:]
+    
+    def seats_debug_double_D(self) -> list[Seat]:
+        self.number_of_passengers = 10
+        self.passengers = mesa.agent.AgentSet(self.passengers[:10], random=self.random)
+        
+        aisle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[0][4]],
+            passengers=[aisle_passenger]
+        )
+        self.grid.place_agent(
+            agent=aisle_passenger,
+            pos=aisle_passenger.assigned_seat.grid_coordinate
+        )
+        middle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[0][5]],
+            passengers=[middle_passenger]
+        )
+        self.grid.place_agent(
+            agent=middle_passenger,
+            pos=middle_passenger.assigned_seat.grid_coordinate
+        )
+        aisle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[1][4]],
+            passengers=[aisle_passenger]
+        )
+        self.grid.place_agent(
+            agent=aisle_passenger,
+            pos=aisle_passenger.assigned_seat.grid_coordinate
+        )
+        middle_passenger = self.passengers.pop()
+        self.airplane.assign_passengers(
+            seats=[self.airplane.seat_map[1][5]],
+            passengers=[middle_passenger]
+        )
+        self.grid.place_agent(
+            agent=middle_passenger,
+            pos=middle_passenger.assigned_seat.grid_coordinate
+        )
+        
+        for i, passenger in enumerate(self.passengers):
+            passenger.arrival_time = 1 + i * self.steps_per_second
+            passenger.seat_reaction_time = 2 * self.steps_per_second
+            passenger.luggage_time = 2 * self.steps_per_second
+            
+        return [self.airplane.seat_map[1][6], self.airplane.seat_map[0][6]] + self.airplane.seats_list()[-4:]
         
         
         
