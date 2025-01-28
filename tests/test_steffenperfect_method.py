@@ -12,10 +12,10 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
     def setUp(self):
         """Set up the model for the specified boarding method."""
         parameters = {
-            "seed": 42,  # Set a default or iterate later if needed
+            "seed": 42, 
             "steps_per_second": 2,
             "aisle_speed": 0.8,
-            "number_of_passengers": 148,  # Default or choose from the range
+            "number_of_passengers": 148,
             "seat_assignment_method": self.seat_assignment_method,
             "conformance": 100,
         }
@@ -48,25 +48,33 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
 
     def test_simulation_completion(self):
         """Ensure all passengers are seated by the end of the simulation."""
-        seated_passengers = [passenger for passenger in self.model.passengers if passenger.seated]
-        self.assertEqual(len(self.model.passengers), len(seated_passengers))
+        seated_passengers = [
+            agent
+            for pos in self.model.grid.coord_iter()
+            for agent in self.model.grid.get_cell_list_contents([pos[1]])
+            if isinstance(agent, Passenger) and agent.seated
+        ]
+        print(f"Test: {self._testMethodName} - Total Number of Passengers for the simulation: {self.model.number_of_passengers}, Seated: {len(seated_passengers)}")
+        self.assertEqual(self.model.number_of_passengers, len(seated_passengers))
 
     def test_number_of_assigned_seats(self):
         """Ensure all passengers have assigned seats."""
         seated_passengers = [
             agent
             for pos in self.model.grid.coord_iter()
-            for agent in self.model.grid.get_cell_list_contents([pos[1]])  # pos[1] gives the coordinates
+            for agent in self.model.grid.get_cell_list_contents([pos[1]])
             if isinstance(agent, Passenger) and agent.seated
         ]
 
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.occupied]
+        print(f"Test: {self._testMethodName} - Seated Passengers: {len(seated_passengers)}, Assigned Seats: {len(assigned_seats)}")
         self.assertEqual(len(seated_passengers), len(assigned_seats))
 
     def test_unique_seat_assignments(self):
         """Ensure no two passengers are assigned to the same seat."""
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.assigned_passenger is not None]
         assigned_passengers = [seat.assigned_passenger for seat in assigned_seats]
+        print(f"Test: {self._testMethodName} - Assigned Passengers: {len(assigned_passengers)}, Unique Assigned Passengers: {len(set(assigned_passengers))}")
         self.assertEqual(len(set(assigned_passengers)), len(assigned_passengers))
 
     def test_boarding_sequence(self):
@@ -90,7 +98,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                 f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
             )
 
-        # Group by row for Steffen Perfect validation
+        # Groups by row for Steffen Perfect validation
         seated_passengers_by_row = {}
         for passenger in sorted_seated_passengers:
             row = passenger.assigned_seat.grid_coordinate[0]
@@ -98,14 +106,14 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                 seated_passengers_by_row[row] = []
             seated_passengers_by_row[row].append(passenger)
 
-        # Validate row-by-row seating order
+        # Validates row-by-row seating order
         print("\nRow-by-Row Seating (Steffen Perfect Validation):")
         for row, passengers in sorted(seated_passengers_by_row.items(), reverse=True):
             print(
                 f"Row {row}: {[(p.assigned_seat.grid_coordinate, p.arrival_time, self.get_seat_type(p.assigned_seat.grid_coordinate[1])) for p in passengers]}"
             )
 
-        # Validate adherence to Steffen Perfect method
+        # Validates adherence to Steffen Perfect method
         for i, passenger in enumerate(sorted_seated_passengers):
             if i > 0:
                 prev_passenger = sorted_seated_passengers[i - 1]
@@ -123,6 +131,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                         f"{passenger.unique_id} in Row {curr_row}, violating Steffen Perfect method."
                     )
 
+        print("\nSteffen Perfect Method Validation Passed!")
 
 class SeatsSteffenPerfectTestCase(BoardingMethodTestBase):
     seat_assignment_method = "steffen_perfect"
