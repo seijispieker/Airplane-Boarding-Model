@@ -20,7 +20,11 @@ To launch the interactive server, run:
 ## Run tests
 
 ```
-    $ python -m unittest tests/*.py 
+    $ python -m unittest tests/*.py
+
+    For test_random_method.py
+
+    $ python -m unittest tests.test_random_method.SeatsRandomTestCase 
 
     For test_backtofront_method.py
 
@@ -32,8 +36,11 @@ To launch the interactive server, run:
 
     For test_outsidein_method.py
 
-    $ python -m unittest tests.test_outsidein_method.
-    SeatsOutsideInTestCase
+    $ python -m unittest tests.test_outsidein_method.SeatsOutsideInTestCase
+
+    For test_segmentedrandom_method.py
+
+    $ python -m unittest tests.test_segmentedrandom_method.SeatsSegmentedRandomTestCase
 
 ```
 

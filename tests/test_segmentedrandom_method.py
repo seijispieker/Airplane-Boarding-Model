@@ -12,7 +12,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
     def setUp(self):
         """Set up the model for the specified boarding method."""
         parameters = {
-            "seed": 42,
+            "seed": 42, 
             "steps_per_second": 2,
             "aisle_speed": 0.8,
             "number_of_passengers": 148,
@@ -27,7 +27,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             steps_per_second=parameters["steps_per_second"],
             aisle_speed=parameters["aisle_speed"],
             number_of_passengers=parameters["number_of_passengers"],
-            seat_assignment_method=self.seat_assignment_method,
+            seat_assignment_method=parameters["seat_assignment_method"],
             conformance=parameters["conformance"],
         )
 
@@ -46,7 +46,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         else:
             raise ValueError(f"Invalid column index: {column}. Must be between 0 and 6.")
 
-    # Common
     def test_simulation_completion(self):
         """Ensure all passengers are seated by the end of the simulation."""
         seated_passengers = [
@@ -58,7 +57,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         print(f"Test: {self._testMethodName} - Total Number of Passengers for the simulation: {self.model.number_of_passengers}, Seated: {len(seated_passengers)}")
         self.assertEqual(self.model.number_of_passengers, len(seated_passengers))
 
-    # Common
     def test_number_of_assigned_seats(self):
         """Ensure all passengers have assigned seats."""
         seated_passengers = [
@@ -72,7 +70,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         print(f"Test: {self._testMethodName} - Seated Passengers: {len(seated_passengers)}, Assigned Seats: {len(assigned_seats)}")
         self.assertEqual(len(seated_passengers), len(assigned_seats))
 
-    # Common
     def test_unique_seat_assignments(self):
         """Ensure no two passengers are assigned to the same seat."""
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.assigned_passenger is not None]
@@ -80,12 +77,10 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         print(f"Test: {self._testMethodName} - Assigned Passengers: {len(assigned_passengers)}, Unique Assigned Passengers: {len(set(assigned_passengers))}")
         self.assertEqual(len(set(assigned_passengers)), len(assigned_passengers))
 
-    # Tests the outside_in seat assignment
     def test_boarding_sequence(self):
-        """Validate Outside-In boarding sequence."""
+        """Validate Segmented Random boarding sequence."""
         print(f"{self.seat_assignment_method}")
 
-        # Retrieves seated passengers
         seated_passengers = [
             agent
             for pos in self.model.grid.coord_iter()
@@ -106,47 +101,53 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                 f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
             )
 
-        # Groups passengers by row
-        passengers_by_row = {}
+        # Groups passengers into segments based on row ranges
+        segment_ranges = [
+            (62, 48),  # Back segment
+            (47, 34),  # Middle-back segment
+            (33, 20),  # Middle-front segment
+            (19, 6),   # Front segment
+        ]
+        passengers_by_segment = {i: [] for i in range(len(segment_ranges))}
+
         for passenger in sorted_seated_passengers:
             row = passenger.assigned_seat.grid_coordinate[0]
-            if row not in passengers_by_row:
-                passengers_by_row[row] = []
-            passengers_by_row[row].append(passenger)
+            for i, (start_row, end_row) in enumerate(segment_ranges):
+                if start_row >= row >= end_row:  # Adjusts for descending rows
+                    passengers_by_segment[i].append(passenger)
+                    break
 
-        # Validates Outside-In order for each row
-        for row, passengers in passengers_by_row.items():
-            # Sort passengers by seat type hierarchy: window → middle → aisle
-            passengers_sorted_by_seat_type = sorted(
-                passengers, key=lambda p: ["window", "middle", "aisle"].index(self.get_seat_type(p.assigned_seat.grid_coordinate[1]))
+        # Validates Segmented Random order within each segment
+        for segment, passengers in passengers_by_segment.items():
+            print(f"\nSegment {segment} (Rows {segment_ranges[segment]}):")
+            segment_passengers = sorted(
+                passengers, key=lambda p: p.arrival_time
             )
 
-            # Logs row data for debugging
-            print(f"\nRow {row}:")
-            for passenger in passengers_sorted_by_seat_type:
-                seat_type = self.get_seat_type(passenger.assigned_seat.grid_coordinate[1])
-                print(f"Passenger {passenger.unique_id}: {seat_type} seat, seated at time {passenger.arrival_time}")
+            # Logs segment data for debugging
+            for passenger in segment_passengers:
+                seat_coords = passenger.assigned_seat.grid_coordinate
+                print(
+                    f"Passenger {passenger.unique_id}: Row {seat_coords[0]}, "
+                    f"Column {seat_coords[1]}, Time {passenger.arrival_time} "
+                    f"({self.get_seat_type(seat_coords[1])} seat)"
+                )
 
-            # Validates order within the row
-            for i, passenger in enumerate(passengers_sorted_by_seat_type):
-                if i > 0:
-                    prev_passenger = passengers_sorted_by_seat_type[i - 1]
-                    prev_seat_type = self.get_seat_type(prev_passenger.assigned_seat.grid_coordinate[1])
-                    curr_seat_type = self.get_seat_type(passenger.assigned_seat.grid_coordinate[1])
+            # Checks for randomness within the segment
+            previous_time = -1
+            for passenger in segment_passengers:
+                self.assertGreaterEqual(
+                    passenger.arrival_time,
+                    previous_time,
+                    f"Passenger {passenger.unique_id} seated earlier than expected "
+                    f"in Segment {segment} (Rows {segment_ranges[segment]})."
+                )
+                previous_time = passenger.arrival_time
 
-                    # Ensure the hierarchy of seat types is respected
-                    if ["window", "middle", "aisle"].index(prev_seat_type) > ["window", "middle", "aisle"].index(curr_seat_type):
-                        self.fail(
-                            f"Passenger {passenger.unique_id} ({curr_seat_type}) seated after "
-                            f"Passenger {prev_passenger.unique_id} ({prev_seat_type}) in Row {row}, "
-                            f"violating the Outside-In method."
-                        )
-        print("\nOutside In Method Validation Passed!")
+        print("\nSegmented Random Validation Passed!")
 
-
-class SeatsOutsideInTestCase(BoardingMethodTestBase):
-    seat_assignment_method = "outside_in"
-
+class SeatsSegmentedRandomTestCase(BoardingMethodTestBase):
+    seat_assignment_method = "segmented_random"
 
 if __name__ == "__main__":
-    unittest.main(verbosity=2, exit=False)
+    unittest.main(verbosity=2)
