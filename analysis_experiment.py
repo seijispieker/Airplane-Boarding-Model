@@ -68,14 +68,14 @@ def plot_boarding_times_conformance():
 
                 line, = plt.plot(conf_list, mean_times, linewidth=2, label=strategy)
 
-                # if strategy != "random":
-                #     plt.fill_between(conf_list, 
-                #                      [m - s for m, s in zip(mean_times, std_times)], 
-                #                      [m + s for m, s in zip(mean_times, std_times)], 
-                #                      alpha=0.2)
+                plt.fill_between(
+                    conf_list, 
+                    [m - s for m, s in zip(mean_times, std_times)], 
+                    [m + s for m, s in zip(mean_times, std_times)], 
+                    alpha=0.1
+                )
 
                 legend_labels.append(line)
-                legend_labels.append(plt.Line2D([0], [0], linestyle="none", label=f"Std: {statistics.mean(std_times):.2f} min"))
 
         plt.xlabel("Conformance Rate (%)")
         plt.ylabel("Boarding Time (min)")
