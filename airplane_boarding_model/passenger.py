@@ -24,6 +24,8 @@ class Passenger(mesa.Agent):
         seated: True if the passenger is seated, False otherwise.
         last_move: The number of steps since the last move.
         arrival_time: The time step when the passenger will arrive at the queue.
+        seat_shuffle: True if the passenger is in a seat shuffle situation,
+            False otherwise. Does not count seat shufftle type A.
         shuffle_out_of_seat: If in a seat shuffle situation, True if the
             passenger is shuffling out of the seat, False otherwise.
         shuffle_into_seat: If in a seat shuffle situation, True if the passenger
@@ -110,6 +112,7 @@ class Passenger(mesa.Agent):
         self.arrival_time = 0
         
         # For seat shuffle
+        self.seat_shuffle = False
         self.shuffle_out_of_seat = False
         self.shuffle_into_seat = False
         self.waiting_for_shuffling = False
@@ -143,9 +146,7 @@ class Passenger(mesa.Agent):
                 self.move_to_target()
         elif self.shuffle_into_seat:
             # While aisle is blocked increment seat shuffle time
-            if (self.shuffle_precedence
-                and not self.all_passengers_shuffling_out_of_aisle()
-            ):
+            if self.shuffle_precedence and self.seat_shuffle:
                 self.seat_shuffle_time += 1
                                         
             if self.at_target():
@@ -155,12 +156,16 @@ class Passenger(mesa.Agent):
             else:                    
                 self.move_to_target()
                 
-                if not self.shuffle_precedence:
-                    first_passenger = self.passengers_shuffling[0]
+            if self.seat_shuffle and not self.shuffle_precedence:
+                first_passenger = self.passengers_shuffling[0]
                 
-                    # If passengers without precendence are out of the aisle
-                    if first_passenger.all_passengers_shuffling_out_of_aisle():
-                        self.model.frozen_aisle_cells[seat_x] = False    
+                # If passengers without precendence are out of the aisle
+                if first_passenger.all_passengers_shuffling_out_of_aisle():
+                    self.model.frozen_aisle_cells[seat_x] = False
+                    
+                    first_passenger.seat_shuffle = False
+                    for passenger in first_passenger.passengers_shuffling:
+                        passenger.seat_shuffle = False
         elif self.waiting_for_shuffling:
             if self.shuffle_precedence:
                 self.seat_shuffle_time += 1
@@ -220,6 +225,7 @@ class Passenger(mesa.Agent):
                     blocking_passenger.assigned_seat.occupied = False
                     blocking_passenger.target_x += x_offset
                     blocking_passenger.target_y = aisle_column
+                    blocking_passenger.seat_shuffle = True
                     blocking_passenger.shuffle_out_of_seat = True
                     blocking_passenger.shuffle_precedence = False
                     blocking_passenger.seat_steps_per_move = self.seat_steps_per_move
@@ -237,14 +243,14 @@ class Passenger(mesa.Agent):
                         self.seat_shuffle_type = "B"
                     else:
                          self.seat_shuffle_type = "C"
-                         
+                
+                self.seat_shuffle = True
                 self.shuffle_precedence = True
                 self.waiting_for_shuffling = True
                 self.seat_shuffle_time = 1
                 self.model.frozen_aisle_cells[self.pos[0] + 1] = True
             else:
                 self.seat_shuffle_waiting_time += 1      
-        # No seat shuffle situation
         # If at seat row
         elif self.pos[0] == seat_x:
             # If at seat column
@@ -253,12 +259,14 @@ class Passenger(mesa.Agent):
                 self.assigned_seat.occupied = True
                 
                 # If precedence in seat shuffle situation
-                if self.shuffle_precedence:
+                if self.seat_shuffle and self.shuffle_precedence:
                     if not self.all_passengers_shuffling_out_of_aisle():
                         self.seat_shuffle_time += 1
                     else:
                         # To stop counting seat shuffle time
-                        self.shuffle_precedence = False
+                        self.seat_shuffle = False
+                        for passenger in self.passengers_shuffling:
+                            passenger.seat_shuffle = False
                 
                 return
                 
