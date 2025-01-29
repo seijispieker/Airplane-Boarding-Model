@@ -93,7 +93,7 @@ def plot_boarding_times_conformance():
         plt.grid(True, linestyle="--", linewidth=0.7)
         plt.xlim(0, 100)
         plt.ylim(15, 35)
-        plt.show()
+        plt.savefig(f"results/experiment/{title}.png")
 
     plot_graph(graph_1_strategies, "Boarding Time vs Conformance Rate (Graph 1)")
     plot_graph(graph_2_strategies, "Boarding Time vs Conformance Rate (Graph 2)")
