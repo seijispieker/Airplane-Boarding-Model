@@ -1,36 +1,62 @@
 import matplotlib.pyplot as plt
+import glob
 import numpy as np
 import pandas as pd
 from scipy.stats import linregress
 
+from analysis_temp import plot_graph_trend
 
 def main():
-    boarding_times_df = pd.read_csv("results/validation/boarding_times.csv")
-    seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
+    boarding_times_files = glob.glob("results/validation/boarding_times_*.csv")
+    boarding_times_df = pd.concat(
+        [pd.read_csv(file) for file in boarding_times_files], ignore_index=True
+        )
+
+    # seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
     compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
 
-    #plot_number_of_passengers_boarding_time(boarding_times_df)
-    #plot_shuffle_time_boxplot(seat_shuffle_times_df)
-    #check_model(boarding_times_df, compare_df, n_iterations= 1000)
-    plot_shuffle_time_comparison(
-    seat_shuffle_times_df,
-    real_data_path="comparison_data/seat_shuffle_data.csv"
-)
+    plot_number_of_passengers_boarding_time(boarding_times_df, compare_df)
 
-    plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
+    # plot_shuffle_time_boxplot(seat_shuffle_times_df)
+
+    #check_model(boarding_times_df, compare_df, n_iterations= 1000)
+#     plot_shuffle_time_comparison(
+#     seat_shuffle_times_df,
+#     real_data_path="comparison_data/seat_shuffle_data.csv"
+# )
+
+    # plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
     
-def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame):
+def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, compare_df):
     """
     Plots the boarding time versus the passenger occupancy of the plane, 
     running an amount of simulations for each occupancy level.
     """
-    grouped = boarding_times_df.groupby("number_of_passengers")["Time (s)"].mean()
 
-    passenger_counts =  grouped.index
-    mean_boarding_times = grouped.values / 60 
+    #Field Comparison
+    real_data_df = compare_df
 
-    #Plot Boarding Time vs Occupancy
+    # grouped = boarding_times_df.groupby("number_of_passengers")["Time (s)"].mean()
+
+    # passenger_counts =  grouped.index
+    # mean_boarding_times = grouped.values / 60 
+
+    # real_grouped = real_data_df.groupby("people")["boarding time"].mean()
+
+    # passenger_countsreal = real_grouped.index
+    # mean_boarding_timesreal = real_grouped.values
+
     plt.figure(figsize=(8, 6))
+    #Plot Real Data
+    plt.scatter(
+        real_data_df["people"],
+        real_data_df["boarding time"],
+        color="red",
+        alpha=0.5,
+        label="Field Data",
+        s=10,
+    )
+    #Plot Boarding Time vs Occupancy
     plt.scatter(
         boarding_times_df["number_of_passengers"],
         boarding_times_df["Time (s)"] / 60,
@@ -40,12 +66,15 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame):
         s=10,
     )
 
-    plt.plot(passenger_counts, mean_boarding_times, color="black", label="Mean Boarding Time")
+    # plt.plot(passenger_counts, mean_boarding_times, color="black", label="Mean Boarding Time - Our Model")
+    # plt.plot(passenger_countsreal, mean_boarding_timesreal, color="red", label="Mean Boarding Time - Field")
 
-    trend = np.polyfit(boarding_times_df["number_of_passengers"] * 174, boarding_times_df["Time (s)"] / 60, 1)
-    trendline = np.polyval(trend, passenger_counts)
+    plot_graph_trend(real_data_df, "people", "boarding time")
+    plot_graph_trend(boarding_times_df, "number_of_passengers", "Time (s)")
+    # trend = np.polyfit(boarding_times_df["number_of_passengers"] * 174, boarding_times_df["Time (s)"] / 60, 1)
+    # trendline = np.polyval(trend, passenger_counts)
 
-    plt.plot(passenger_counts, trendline, linestyle="--", color="black", label="Trend Line")
+    # plt.plot(passenger_counts, trendline, linestyle="--", color="black", label="Trend Line")
 
     plt.title("Boarding Time vs Passenger Occupancy")
     plt.xlabel("Passengers")
