@@ -150,8 +150,9 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame):
     )
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.tight_layout()
-    plt.show()
     plt.savefig("results/validation/seat_shuffle_time_comparison.png")
+    # plt.show()
+    
 
 def plot_seat_shuffle_waiting_times():
     """
@@ -219,8 +220,9 @@ def plot_seat_shuffle_waiting_times():
 
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.tight_layout()
-    plt.show()
     plt.savefig("results/validation/seat_shuffle_waiting_times.png")
+    # plt.show()
+    
 
 if __name__ == "__main__":
     main()
