@@ -124,10 +124,22 @@ def post_process_space(ax: plt.Axes):
             # Space between the seats color
             if 5 <= col_index <= 61 and (col_index - 5) % 2 == 0:
                 if row_index in [0, 1, 2, 4, 5, 6]:
+                    # Left half
                     ax.add_patch(
                         plt.Rectangle(
-                            (col_index - 0.5, row_index - 0.5),
+                            (col_index - 0.5, row_index - 0.5), 
+                            0.5,  
                             1, 
+                            color="blue",
+                            alpha=0.3,
+                            zorder=0,
+                        )
+                    )
+                    # Right half
+                    ax.add_patch(
+                        plt.Rectangle(
+                            (col_index, row_index - 0.5),  
+                            0.5,  
                             1, 
                             color="gray",
                             alpha=0.3,
@@ -151,12 +163,24 @@ def post_process_space(ax: plt.Axes):
                     )
                 )
             # Seat rows color
-            else: 
+            else:
+                # Left half
                 ax.add_patch(
                     plt.Rectangle(
-                        (col_index + x_offset, row_index + y_offset),
-                        1,
-                        1,
+                        (col_index - 0.5, row_index - 0.5),  
+                        0.5, 
+                        1, 
+                        color="gray",
+                        alpha=0.3,
+                        zorder=0,
+                    )
+                )
+
+                ax.add_patch(
+                    plt.Rectangle(
+                        (col_index, row_index - 0.5),  
+                        0.5, 
+                        1, 
                         color="blue",
                         alpha=0.3,
                         zorder=0,
@@ -167,7 +191,7 @@ def post_process_space(ax: plt.Axes):
     row_number = 1
     for col_index in range(6, adjusted_grid_width - 2, 2):
         ax.text(
-            col_index,
+            col_index + 0.5,
             -1,
             str(row_number),
             fontsize=10,
@@ -177,6 +201,32 @@ def post_process_space(ax: plt.Axes):
             weight="bold",
         )
         row_number += 1
+
+    # Specific changes for column 6 and the penultimate column
+    for row_index in [0, 1, 2, 4, 5, 6]:
+        # Left half
+        ax.add_patch(
+            plt.Rectangle(
+                (5 - 0.5, row_index - 0.5), 
+                0.5,  
+                1,  
+                color="white",
+                alpha=1,
+                zorder=1,
+            )
+        )
+
+        penultimate_col = adjusted_grid_width - 2 
+        ax.add_patch(
+            plt.Rectangle(
+                (penultimate_col - 0.5, row_index - 0.5),  
+                0.5,  
+                1, 
+                color="blue",
+                alpha=0.3,
+                zorder=1,
+            )
+        )
 
     ax.set_xticks([])
     ax.set_yticks([])
