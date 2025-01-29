@@ -65,7 +65,7 @@ def plot_boarding_times_conformance():
                 conf_list = sorted(strategy_data[strategy].keys())  
                 mean_times = [pd.Series(strategy_data[strategy][conf]).mean() for conf in conf_list]
                 std_times = [pd.Series(strategy_data[strategy][conf]).std() for conf in conf_list]
-
+                print(f"{strategy}: {mean_times[-1]} {std_times[-1]}")
                 line, = plt.plot(conf_list, mean_times, linewidth=2, label=strategy)
 
                 plt.fill_between(
