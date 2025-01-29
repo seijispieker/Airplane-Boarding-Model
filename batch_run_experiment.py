@@ -10,17 +10,17 @@ parameters = {
     "steps_per_second": 2,
     "aisle_speed": 0.8,
     "number_of_passengers": range(round(0.71 * 174), round(0.81 * 174) + 1),
-    "conformance": range(0,101)
+    "conformance": range(0,101, 10)
 }
 
 
 seat_assignment_methods = [
-    # "back_to_front",
-    # "random",
-    "segmented_random_3",
-    "segmented_random_4",
-    "outside_in",
-    "steffen_perfect"
+     "back_to_front",
+     "random",
+    #"segmented_random_3",
+    #"segmented_random_4",
+    #"outside_in",
+    #"steffen_perfect"
 ]
 
 
