@@ -9,6 +9,12 @@ class BoardingMethodTestBase(unittest.TestCase):
     """Base class for boarding method tests."""
     seat_assignment_method = None
 
+    @classmethod
+    def setUpClass(cls):
+        """Skip execution if this is the base class."""
+        if cls is BoardingMethodTestBase:
+            raise unittest.SkipTest("Skipping base test class")
+        
     def setUp(self):
         """Set up the model for the specified boarding method."""
 
@@ -45,7 +51,6 @@ class BoardingMethodTestBase(unittest.TestCase):
             for agent in self.model.grid.get_cell_list_contents([pos[1]])
             if isinstance(agent, Passenger) and agent.seated
         ]
-        print(f"Test: {self._testMethodName} - Total Number of Passengers for the simulation: {self.model.number_of_passengers}, Seated: {len(seated_passengers)}")
         self.assertEqual(self.model.number_of_passengers, len(seated_passengers))
 
     #  Common
@@ -62,15 +67,12 @@ class BoardingMethodTestBase(unittest.TestCase):
         # Gets the assigned seats
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.occupied]
 
-        # Debugging
-        print(f"Test: {self._testMethodName} - Seated Passengers: {len(seated_passengers)}, Assigned Seats: {len(assigned_seats)}")
         self.assertEqual(len(seated_passengers), len(assigned_seats))
 
     def test_unique_seat_assignments(self):
         """Ensure no two passengers are assigned to the same seat."""
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.assigned_passenger is not None]
         assigned_passengers = [seat.assigned_passenger for seat in assigned_seats]
-        print(f"Test: {self._testMethodName} - Assigned Passengers: {len(assigned_passengers)}, Unique Assigned Passengers: {len(set(assigned_passengers))}")
         self.assertEqual(len(set(assigned_passengers)), len(assigned_passengers))
 
     def test_random_boarding_sequence(self):
@@ -83,10 +85,10 @@ class BoardingMethodTestBase(unittest.TestCase):
             if isinstance(agent, Passenger) and agent.seated
         ]
 
-        # Debugging
-        print("\nSeated Passengers:")
-        for passenger in seated_passengers:
-            print(f"Passenger {passenger.unique_id}: Assigned Seat = {passenger.assigned_seat}, Arrival Time = {passenger.arrival_time}")
+        # # Debugging
+        # print("\nSeated Passengers:")
+        # for passenger in seated_passengers:
+        #     print(f"Passenger {passenger.unique_id}: Assigned Seat = {passenger.assigned_seat}, Arrival Time = {passenger.arrival_time}")
 
         # Sorts passengers by boarding time
         sorted_seated_passengers = sorted(
@@ -114,11 +116,7 @@ class BoardingMethodTestBase(unittest.TestCase):
             f"Boarding sequence does not appear random (p = {p_value}). Chi2 = {chi2_stat}, Counts = {counts}"
         )
 
-        print(f"Test: {self._testMethodName} - Chi-squared Statistic: {chi2_stat}, P-value: {p_value}")
-        
-        print("\nRandom Method, Validation Passed!")
-
-class SeatsRandomTestCase(BoardingMethodTestBase):
+class TestSeatsRandom(BoardingMethodTestBase):
     seat_assignment_method = "random"
 
 if __name__ == "__main__":

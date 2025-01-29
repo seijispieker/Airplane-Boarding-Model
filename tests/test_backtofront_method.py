@@ -8,6 +8,12 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
     """Base class for boarding method tests."""
     seat_assignment_method = None
 
+    @classmethod
+    def setUpClass(cls):
+        """Skip execution if this is the base class."""
+        if cls is BoardingMethodTestBase:
+            raise unittest.SkipTest("Skipping base test class")
+        
     def setUp(self):
         """Set up the model for the specified boarding method."""
 
@@ -45,8 +51,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             for agent in self.model.grid.get_cell_list_contents([pos[1]])
             if isinstance(agent, Passenger) and agent.seated
         ]
-
-        print(f"Test: {self._testMethodName} - Total Number of Passengers for the simulation: {self.model.number_of_passengers}, Seated: {len(seated_passengers)}")
         self.assertEqual(self.model.number_of_passengers, len(seated_passengers))
 
     # Common Test
@@ -62,8 +66,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         # Assigned seats
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.occupied]
 
-        # Debugging
-        print(f"Test: {self._testMethodName} - Seated Passengers: {len(seated_passengers)}, Assigned Seats: {len(assigned_seats)}")
         # Assert that the number of seated passengers matches the number of assigned seats
         self.assertEqual(len(seated_passengers), len(assigned_seats))
 
@@ -72,7 +74,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         """Ensure no two passengers are assigned to the same seat."""
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.assigned_passenger is not None]
         assigned_passengers = [seat.assigned_passenger for seat in assigned_seats]
-        print(f"Test: {self._testMethodName} - Assigned Passengers: {len(assigned_passengers)}, Unique Assigned Passengers: {len(set(assigned_passengers))}")
         self.assertEqual(len(set(assigned_passengers)), len(assigned_passengers))
     
     # Back_to-front sequencing test
@@ -89,24 +90,19 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             if isinstance(agent, Passenger) and agent.seated
         ]
 
-        # Debugging
-        print("\nSeated Passengers:")
-        for passenger in seated_passengers:
-            print(f"Passenger {passenger.unique_id}: Assigned Seat = {passenger.assigned_seat}, Arrival Time = {passenger.arrival_time}")
-
         # Sorts passengers by boarding time
         sorted_seated_passengers = sorted(
             seated_passengers,
             key=lambda p: p.arrival_time
         )
 
-        # Logs seating order and times
-        print("\nSeating Order (By Time Seated):")
-        for passenger in sorted_seated_passengers:
-            print(
-                f"Passenger {passenger.unique_id} seated at {passenger.assigned_seat} "
-                f"(Row {passenger.assigned_seat.grid_coordinate[0]}) at time {passenger.arrival_time}"
-            )
+        # # Logs seating order and times
+        # print("\nSeating Order (By Time Seated):")
+        # for passenger in sorted_seated_passengers:
+        #     print(
+        #         f"Passenger {passenger.unique_id} seated at {passenger.assigned_seat} "
+        #         f"(Row {passenger.assigned_seat.grid_coordinate[0]}) at time {passenger.arrival_time}"
+        #     )
 
         # Groups passengers by row (back-to-front)
         seated_passengers_by_row = {}
@@ -122,16 +118,16 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         
 
         # Validates back-to-front trend
-        print("\nRow-by-Row Seating (General Back-to-Front Trend):")
+        # print("\nRow-by-Row Seating (General Back-to-Front Trend):")
         previous_row_latest_time = float("-inf")  # Track the latest seating time in previous rows
         for row in sorted_rows:
             row_passengers = seated_passengers_by_row[row]
             row_seating_times = [p.arrival_time for p in row_passengers]
 
             # Prints row-specific data
-            print(
-                f"Row {row}: {[(p.assigned_seat, p.arrival_time) for p in row_passengers]} "
-            )
+            # print(
+            #     f"Row {row}: {[(p.assigned_seat, p.arrival_time) for p in row_passengers]} "
+            # )
 
             # Allow overlap but ensure the general trend of back-to-front
             if min(row_seating_times) < previous_row_latest_time:
@@ -142,17 +138,23 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         for i, passenger in enumerate(sorted_seated_passengers):
             if i > 0:
                 prev_passenger = sorted_seated_passengers[i - 1]
-                if (
-                    prev_passenger.assigned_seat.grid_coordinate[0] < passenger.assigned_seat.grid_coordinate[0]
-                    and prev_passenger.arrival_time > passenger.arrival_time
-                ):
-                    self.fail(
-                        f"Passenger {prev_passenger.unique_id} (Row {prev_passenger.assigned_seat.grid_coordinate[0]}) seated after "
-                        f"Passenger {passenger.unique_id} (Row {passenger.assigned_seat.grid_coordinate[0]}), violating the back-to-front trend."
-                    )
-        print("\nBack To Front Method Validation Passed!")
+                prev_row = prev_passenger.assigned_seat.grid_coordinate[0]
+                curr_row = passenger.assigned_seat.grid_coordinate[0]
 
-class SeatsBackToFrontTestCase(BoardingMethodTestBase):
+                prev_time = prev_passenger.arrival_time
+                curr_time = passenger.arrival_time
+
+                # Ensure that passengers seated in a row closer to the back did not arrive later than those in front
+                self.assertLessEqual(
+                    prev_time,
+                    curr_time,
+                    msg=(
+                        f"Passenger {prev_passenger.unique_id} (Row {prev_row}) seated after "
+                        f"Passenger {passenger.unique_id} (Row {curr_row}), violating the back-to-front trend."
+                    )
+                )
+
+class TestSeatsBackToFront(BoardingMethodTestBase):
     seat_assignment_method = "back_to_front"
 
 if __name__ == "__main__":

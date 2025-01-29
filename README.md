@@ -49,11 +49,10 @@ To plot the experiment results:
     $ python analysis_experiment.py
 ```
 
-
 ## How to run tests
 
 ```
-    $ python -m unittest -v tests/*.py
+    $ python -m unittest discover -s tests
 ```
 
 ## References

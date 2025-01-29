@@ -9,6 +9,12 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
     """Base class for boarding method tests."""
     seat_assignment_method = None
 
+    @classmethod
+    def setUpClass(cls):
+        """Skip execution if this is the base class."""
+        if cls is BoardingMethodTestBase:
+            raise unittest.SkipTest("Skipping base test class")
+        
     def setUp(self):
         """Set up the model for the specified boarding method."""
         parameters = {
@@ -55,7 +61,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             for agent in self.model.grid.get_cell_list_contents([pos[1]])
             if isinstance(agent, Passenger) and agent.seated
         ]
-        print(f"Test: {self._testMethodName} - Total Number of Passengers for the simulation: {self.model.number_of_passengers}, Seated: {len(seated_passengers)}")
+        
         self.assertEqual(self.model.number_of_passengers, len(seated_passengers))
 
     # Common
@@ -69,7 +75,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         ]
 
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.occupied]
-        print(f"Test: {self._testMethodName} - Seated Passengers: {len(seated_passengers)}, Assigned Seats: {len(assigned_seats)}")
         self.assertEqual(len(seated_passengers), len(assigned_seats))
 
     # Common
@@ -77,7 +82,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         """Ensure no two passengers are assigned to the same seat."""
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.assigned_passenger is not None]
         assigned_passengers = [seat.assigned_passenger for seat in assigned_seats]
-        print(f"Test: {self._testMethodName} - Assigned Passengers: {len(assigned_passengers)}, Unique Assigned Passengers: {len(set(assigned_passengers))}")
+        
         self.assertEqual(len(set(assigned_passengers)), len(assigned_passengers))
 
     # Tests the outside_in seat assignment
@@ -97,14 +102,14 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         sorted_seated_passengers = sorted(seated_passengers, key=lambda p: p.arrival_time)
 
         # Logs seating order for debugging
-        print("\nSeating Order (By Time Seated):")
-        for passenger in sorted_seated_passengers:
-            seat_coords = passenger.assigned_seat.grid_coordinate
-            print(
-                f"Passenger {passenger.unique_id} seated at {seat_coords} "
-                f"(Row {seat_coords[0]}, Column {seat_coords[1]}) "
-                f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
-            )
+        # print("\nSeating Order (By Time Seated):")
+        # for passenger in sorted_seated_passengers:
+        #     seat_coords = passenger.assigned_seat.grid_coordinate
+        #     print(
+        #         f"Passenger {passenger.unique_id} seated at {seat_coords} "
+        #         f"(Row {seat_coords[0]}, Column {seat_coords[1]}) "
+        #         f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
+        #     )
 
         # Groups passengers by row
         passengers_by_row = {}
@@ -122,10 +127,10 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             )
 
             # Logs row data for debugging
-            print(f"\nRow {row}:")
-            for passenger in passengers_sorted_by_seat_type:
-                seat_type = self.get_seat_type(passenger.assigned_seat.grid_coordinate[1])
-                print(f"Passenger {passenger.unique_id}: {seat_type} seat, seated at time {passenger.arrival_time}")
+            # print(f"\nRow {row}:")
+            # for passenger in passengers_sorted_by_seat_type:
+            #     seat_type = self.get_seat_type(passenger.assigned_seat.grid_coordinate[1])
+            #     print(f"Passenger {passenger.unique_id}: {seat_type} seat, seated at time {passenger.arrival_time}")
 
             # Validates order within the row
             for i, passenger in enumerate(passengers_sorted_by_seat_type):
@@ -134,17 +139,21 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                     prev_seat_type = self.get_seat_type(prev_passenger.assigned_seat.grid_coordinate[1])
                     curr_seat_type = self.get_seat_type(passenger.assigned_seat.grid_coordinate[1])
 
-                    # Ensure the hierarchy of seat types is respected
-                    if ["window", "middle", "aisle"].index(prev_seat_type) > ["window", "middle", "aisle"].index(curr_seat_type):
-                        self.fail(
-                            f"Passenger {passenger.unique_id} ({curr_seat_type}) seated after "
-                            f"Passenger {prev_passenger.unique_id} ({prev_seat_type}) in Row {row}, "
-                            f"violating the Outside-In method."
-                        )
-        print("\nOutside In Method Validation Passed!")
+                    # Convert seat types to an ordered index list for validation
+                    prev_seat_index = ["window", "middle", "aisle"].index(prev_seat_type)
+                    curr_seat_index = ["window", "middle", "aisle"].index(curr_seat_type)
+
+                    # Assert that the current seat type is not placed before its expected hierarchy
+                    self.assertLessEqual(
+                        prev_seat_index,
+                        curr_seat_index,
+                        f"Passenger {passenger.unique_id} ({curr_seat_type}) seated before "
+                        f"Passenger {prev_passenger.unique_id} ({prev_seat_type}) in Row {row}, "
+                        f"violating the Outside-In method."
+                    )
 
 
-class SeatsOutsideInTestCase(BoardingMethodTestBase):
+class TestSeatsOutsideIn(BoardingMethodTestBase):
     seat_assignment_method = "outside_in"
 
 

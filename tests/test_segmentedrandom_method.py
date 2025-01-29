@@ -9,6 +9,12 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
     """Base class for boarding method tests."""
     seat_assignment_method = None
 
+    @classmethod
+    def setUpClass(cls):
+        """Skip execution if this is the base class."""
+        if cls is BoardingMethodTestBase:
+            raise unittest.SkipTest("Skipping base test class")
+        
     def setUp(self):
         """Set up the model for the specified boarding method."""
         parameters = {
@@ -54,7 +60,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             for agent in self.model.grid.get_cell_list_contents([pos[1]])
             if isinstance(agent, Passenger) and agent.seated
         ]
-        print(f"Test: {self._testMethodName} - Total Number of Passengers for the simulation: {self.model.number_of_passengers}, Seated: {len(seated_passengers)}")
         self.assertEqual(self.model.number_of_passengers, len(seated_passengers))
 
     def test_number_of_assigned_seats(self):
@@ -67,14 +72,12 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         ]
 
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.occupied]
-        print(f"Test: {self._testMethodName} - Seated Passengers: {len(seated_passengers)}, Assigned Seats: {len(assigned_seats)}")
         self.assertEqual(len(seated_passengers), len(assigned_seats))
 
     def test_unique_seat_assignments(self):
         """Ensure no two passengers are assigned to the same seat."""
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.assigned_passenger is not None]
         assigned_passengers = [seat.assigned_passenger for seat in assigned_seats]
-        print(f"Test: {self._testMethodName} - Assigned Passengers: {len(assigned_passengers)}, Unique Assigned Passengers: {len(set(assigned_passengers))}")
         self.assertEqual(len(set(assigned_passengers)), len(assigned_passengers))
 
     def test_boarding_sequence(self):
@@ -92,14 +95,14 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         sorted_seated_passengers = sorted(seated_passengers, key=lambda p: p.arrival_time)
 
         # Logs seating order for debugging
-        print("\nSeating Order (By Time Seated):")
-        for passenger in sorted_seated_passengers:
-            seat_coords = passenger.assigned_seat.grid_coordinate
-            print(
-                f"Passenger {passenger.unique_id} seated at {seat_coords} "
-                f"(Row {seat_coords[0]}, Column {seat_coords[1]}) "
-                f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
-            )
+        # print("\nSeating Order (By Time Seated):")
+        # for passenger in sorted_seated_passengers:
+        #     seat_coords = passenger.assigned_seat.grid_coordinate
+        #     print(
+        #         f"Passenger {passenger.unique_id} seated at {seat_coords} "
+        #         f"(Row {seat_coords[0]}, Column {seat_coords[1]}) "
+        #         f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
+        #     )
 
         # Groups passengers into segments based on row ranges
         segment_ranges = [
@@ -119,19 +122,19 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
 
         # Validates Segmented Random order within each segment
         for segment, passengers in passengers_by_segment.items():
-            print(f"\nSegment {segment} (Rows {segment_ranges[segment]}):")
+            # print(f"\nSegment {segment} (Rows {segment_ranges[segment]}):")
             segment_passengers = sorted(
                 passengers, key=lambda p: p.arrival_time
             )
 
-            # Logs segment data for debugging
-            for passenger in segment_passengers:
-                seat_coords = passenger.assigned_seat.grid_coordinate
-                print(
-                    f"Passenger {passenger.unique_id}: Row {seat_coords[0]}, "
-                    f"Column {seat_coords[1]}, Time {passenger.arrival_time} "
-                    f"({self.get_seat_type(seat_coords[1])} seat)"
-                )
+            # # Logs segment data for debugging
+            # for passenger in segment_passengers:
+            #     seat_coords = passenger.assigned_seat.grid_coordinate
+            #     print(
+            #         f"Passenger {passenger.unique_id}: Row {seat_coords[0]}, "
+            #         f"Column {seat_coords[1]}, Time {passenger.arrival_time} "
+            #         f"({self.get_seat_type(seat_coords[1])} seat)"
+            #     )
 
             # Checks for randomness within the segment
             previous_time = -1
@@ -143,10 +146,9 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                     f"in Segment {segment} (Rows {segment_ranges[segment]})."
                 )
                 previous_time = passenger.arrival_time
+                
 
-        print("\nSegmented Random Validation Passed!")
-
-class SeatsSegmentedRandomTestCase(BoardingMethodTestBase):
+class TestSeatsSegmentedRandom(BoardingMethodTestBase):
     seat_assignment_method = "segmented_random"
 
 if __name__ == "__main__":
