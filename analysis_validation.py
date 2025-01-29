@@ -17,8 +17,16 @@ def main():
     slope = check_model(boarding_times_df, compare_df, n_iterations=1000)
     plot_number_of_passengers_boarding_time(boarding_times_df, compare_df)
     plt.title(f"Boarding Time vs Passenger Occupancy \n{slope}")
-    plt.show()
     
+    seat_shuffle_time_files = glob.glob("results/validation/boarding_times_*.csv")
+    seat_shuffle_times_df = pd.concat(
+        [pd.read_csv(file) for file in seat_shuffle_time_files], ignore_index=True
+    )
+
+    plot_shuffle_time_comparison(seat_shuffle_times_df)
+    plot_seat_shuffle_waiting_times()
+
+    plt.show()
 def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, compare_df):
     """
     Plots the boarding time versus the passenger occupancy of the plane, 
