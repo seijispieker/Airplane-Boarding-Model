@@ -65,6 +65,7 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     plt.xlabel("Passengers")
     plt.ylabel("Boarding Time (min)")
     plt.grid(True, linestyle=":", linewidth=0.7)
+    plt.title("Boarding Time vs Number of Passengers")
     plt.legend()
     plt.savefig("results/validation/boarding_time_vs_passenger_occupancy.png")
     # plt.show()
