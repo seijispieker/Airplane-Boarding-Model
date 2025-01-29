@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 from scipy.stats import linregress
 
-from analysis_temp import plot_graph_trend
-from analysis_temp import check_model
 
 def main():
     boarding_times_files = glob.glob("results/validation/boarding_times_*.csv")
@@ -258,10 +256,24 @@ def check_model(df1, df2, n_iterations=10000):
 
     #making print for graph
     if lower <= 0 <= upper:
-        slope = f"slope of model is similar!, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Slope of model is similar!, range: [{lower:.4f}, {upper:.4f}]"
     else:
-        slope = f"slope of model is incorrect, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Slope of model is incorrect, range: [{lower:.4f}, {upper:.4f}]"
     return slope
+
+def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", label="Trend line", marker="x"):
+    """
+    add a plot of wanted columns of a dataframe.
+    show_all = "yes" for scatterplot of all datapoints
+    """
+    grouped = df.groupby(x)[y].mean()
+    passenger_counts = grouped.index
+    
+    #trendline model data
+    trend = np.polyfit(df[x], df[y], 1)
+    trendline = np.polyval(trend, passenger_counts)
+
+    plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
 
 if __name__ == "__main__":
     main()
