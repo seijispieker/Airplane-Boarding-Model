@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import statistics
 
 
 
@@ -53,17 +54,10 @@ def plot_boarding_times_conformance():
 
         strategy_data[strategy][conf].append(time)
 
-    graph_1_strategies = ["random", "back_to_front", "outside_in", "steffen_perfect"]
-    graph_2_strategies = ["random", "segmented_random_3", "segmented_random_4"]
-
-    random_std = None
-    if "random" in strategy_data:
-        all_random_values = [time for conf in strategy_data["random"] for time in strategy_data["random"][conf]]
-        if all_random_values:
-            random_std = pd.Series(all_random_values).std()
+    graph_1_strategies = ["random", "back_to_front", "outside_in", "steffen_perfect", "segmented_random_3", "segmented_random_4"]
 
     def plot_graph(selected_strategies, title):
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(16, 8))
         legend_labels = []
 
         for strategy in selected_strategies:
@@ -74,16 +68,14 @@ def plot_boarding_times_conformance():
 
                 line, = plt.plot(conf_list, mean_times, linewidth=2, label=strategy)
 
-                if strategy != "random":
-                    plt.fill_between(conf_list, 
-                                     [m - s for m, s in zip(mean_times, std_times)], 
-                                     [m + s for m, s in zip(mean_times, std_times)], 
-                                     alpha=0.2)
+                # if strategy != "random":
+                #     plt.fill_between(conf_list, 
+                #                      [m - s for m, s in zip(mean_times, std_times)], 
+                #                      [m + s for m, s in zip(mean_times, std_times)], 
+                #                      alpha=0.2)
 
                 legend_labels.append(line)
-
-        if random_std is not None:
-            legend_labels.append(plt.Line2D([0], [0], linestyle="none", label=f"Random Std: {random_std:.2f} min"))
+                legend_labels.append(plt.Line2D([0], [0], linestyle="none", label=f"Std: {statistics.mean(std_times):.2f} min"))
 
         plt.xlabel("Conformance Rate (%)")
         plt.ylabel("Boarding Time (min)")
@@ -95,8 +87,7 @@ def plot_boarding_times_conformance():
         plt.ylim(15, 35)
         plt.savefig(f"results/experiment/{title}.png")
 
-    plot_graph(graph_1_strategies, "Boarding Time vs Conformance Rate (Graph 1)")
-    plot_graph(graph_2_strategies, "Boarding Time vs Conformance Rate (Graph 2)")
+    plot_graph(graph_1_strategies, "Boarding Time vs Conformance Rate")
 
 
 if __name__ == "__main__":
