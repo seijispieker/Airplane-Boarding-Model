@@ -3,6 +3,8 @@ from typing import TYPE_CHECKING
 
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+
 from mesa.visualization import (
     Slider,
     SolaraViz,
@@ -108,18 +110,18 @@ def post_process_space(ax: plt.Axes):
                         )
                     )
                     continue
-                elif row_index == 3:
-                    # Entrance and back of the plane color
-                    ax.add_patch(
-                        plt.Rectangle(
-                            (col_index - 0.5, row_index - 0.5),
-                            1, 
-                            1, 
-                            color="green",
-                            alpha=0.3,
-                            zorder=0,
-                        )
-                    )
+                #elif row_index == 3:  
+                    # Entrance and back of the plane color ( can be left out if we want gray )
+                    #ax.add_patch(
+                        #plt.Rectangle(
+                            #(col_index - 0.5, row_index - 0.5),
+                            #1, 
+                            #1, 
+                            #color="gray",
+                            #alpha=0.3,
+                            #zorder=0,
+                        #)
+                    #)
 
             # Space between the seats color
             if 5 <= col_index <= 61 and (col_index - 5) % 2 == 0:
@@ -202,7 +204,7 @@ def post_process_space(ax: plt.Axes):
         )
         row_number += 1
 
-    # Specific changes for column 6 and the penultimate column
+    # column 6 and the penultimate column
     for row_index in [0, 1, 2, 4, 5, 6]:
         # Left half
         ax.add_patch(
@@ -227,6 +229,13 @@ def post_process_space(ax: plt.Axes):
                 zorder=1,
             )
         )
+
+    legend_elements = [
+        Patch(facecolor="blue", edgecolor="black", alpha=0.3, label="Seats"),
+        Patch(facecolor="gray", edgecolor="black", alpha=0.3, label="Aisle"),
+    ]
+
+    ax.legend(handles=legend_elements, loc="upper left", fontsize=10, framealpha=0.8)
 
     ax.set_xticks([])
     ax.set_yticks([])
