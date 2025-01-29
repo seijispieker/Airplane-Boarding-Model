@@ -35,13 +35,13 @@ def check_model(df1, df2, n_iterations=10000):
 
     #making print for graph
     if lower <= 0 <= upper:
-        slope = f"slope of model is similar!, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Slope of model is similar!, range: [Lower Slope{lower:.4f}, Upper Slope{upper:.4f}]"
     else:
-        slope = f"slope of model is incorrect, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Slope of model is incorrect, range: [Lower Slope{lower:.4f}, Upper Slope{upper:.4f}]"
     return slope
 
 
-def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", label="trend", marker="x"):
+def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", label="Trend line", marker="x"):
     """
     add a plot of wanted columns of a dataframe.
     show_all = "yes" for scatterplot of all datapoints
@@ -52,44 +52,44 @@ def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", la
     trend = np.polyfit(df[x], df[y], 1)
     trendline = np.polyval(trend, passenger_counts)
 
-    #plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
-    sns.regplot(data=df, scatter=False, x=x, y=y, label= label, color=color)
+    plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
+    # sns.regplot(data=df, scatter=False, x=x, y=y, label= label, color=color)
 
-    if show_all == "yes":
-        plt.scatter(
-            df[x],
-            df[y],
-            color=color,
-            alpha=0.5,
-            label=f"all data {label}",
-            s=10,
-            marker=marker
-        )
+    # if show_all == "yes":
+    #     plt.scatter(
+    #         df[x],
+    #         df[y],
+    #         color=color,
+    #         alpha=0.5,
+    #         label=f"all data {label}",
+    #         s=10,
+    #         marker=marker
+    #     )
 
-boarding_times_df_btf = pd.read_csv("results/validation/boarding_times.csv")
-boarding_times_df = pd.read_csv("results/experiment/results.csv")
-boarding_times_df["Time (min)"] = boarding_times_df["Time (s)"] / 60
-boarding_times_df_btf["Time (min)"] = boarding_times_df["Time (s)"] / 60
+# boarding_times_df_btf = pd.read_csv("results/validation/boarding_times.csv")
+# boarding_times_df = pd.read_csv("results/experiment/results.csv")
+# boarding_times_df["Time (min)"] = boarding_times_df["Time (s)"] / 60
+# boarding_times_df_btf["Time (min)"] = boarding_times_df["Time (s)"] / 60
 
 
-compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
-boarding_times_df_seg = boarding_times_df[boarding_times_df.seat_assignment_method == "segmented_random_3"]
-boarding_times_df_rand = boarding_times_df[boarding_times_df.seat_assignment_method == "random"]
-boarding_times_df_btf = boarding_times_df[boarding_times_df.seat_assignment_method == "back_to_front"]
-boarding_times_df_btf = boarding_times_df_btf[boarding_times_df_btf.conformance == 100]
+# compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
+# boarding_times_df_seg = boarding_times_df[boarding_times_df.seat_assignment_method == "segmented_random_3"]
+# boarding_times_df_rand = boarding_times_df[boarding_times_df.seat_assignment_method == "random"]
+# boarding_times_df_btf = boarding_times_df[boarding_times_df.seat_assignment_method == "back_to_front"]
+# boarding_times_df_btf = boarding_times_df_btf[boarding_times_df_btf.conformance == 100]
 
-plt.figure(figsize=(8, 6))
-plot_graph_trend(compare_df, "people", "boarding time", color= "black", label="field data")
-plot_graph_trend(boarding_times_df_seg, "number_of_passengers", "Time (min)", color= "red", label="sim segmented", marker="p")
-plot_graph_trend(boarding_times_df_rand, "number_of_passengers", "Time (min)", color= "green", label="sim random", marker="*")
-plot_graph_trend(boarding_times_df_btf, "number_of_passengers", "Time (min)", color= "black", label="sim btf", marker="+")
+# plt.figure(figsize=(8, 6))
+# plot_graph_trend(compare_df, "people", "boarding time", color= "black", label="field data")
+# plot_graph_trend(boarding_times_df_seg, "number_of_passengers", "Time (min)", color= "red", label="sim segmented", marker="p")
+# plot_graph_trend(boarding_times_df_rand, "number_of_passengers", "Time (min)", color= "green", label="sim random", marker="*")
+# plot_graph_trend(boarding_times_df_btf, "number_of_passengers", "Time (min)", color= "black", label="sim btf", marker="+")
 
-slope = check_model(boarding_times_df_seg, compare_df, n_iterations=  100)
-print(slope)
-slope = check_model(boarding_times_df_rand, compare_df, n_iterations=  100)
-print(slope)
-plt.legend()
-plt.show()
+# slope = check_model(boarding_times_df_seg, compare_df, n_iterations=  100)
+# print(slope)
+# slope = check_model(boarding_times_df_rand, compare_df, n_iterations=  100)
+# print(slope)
+# plt.legend()
+# plt.show()
 
 """
 #--- plotting graphs
