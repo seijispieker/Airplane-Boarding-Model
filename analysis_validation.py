@@ -67,10 +67,10 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     # trendline = np.polyval(trend, passenger_counts)
 
     # plt.plot(passenger_counts, trendline, linestyle="--", color="black", label="Trend Line")
-    plot_graph_trend(compare_df, "people", "boarding time")
+    plot_graph_trend(compare_df, "people", "boarding time", label=" Field Trials Trend line")
 
     boarding_times_df["Time"] = boarding_times_df["Time (s)"] /60
-    plot_graph_trend(boarding_times_df, "number_of_passengers", "Time")
+    plot_graph_trend(boarding_times_df, "number_of_passengers", "Time", label="Experiment Trend line")
 
     
     plt.xlabel("Passengers")

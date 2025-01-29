@@ -35,13 +35,13 @@ def check_model(df1, df2, n_iterations=10000):
 
     #making print for graph
     if lower <= 0 <= upper:
-        slope = f"slope of model is similar!, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Slope of model is similar!, range: [Lower Slope{lower:.4f}, Upper Slope{upper:.4f}]"
     else:
-        slope = f"slope of model is incorrect, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Slope of model is incorrect, range: [Lower Slope{lower:.4f}, Upper Slope{upper:.4f}]"
     return slope
 
 
-def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="blue", label="Trend line", marker="x"):
+def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", label="Trend line", marker="x"):
     """
     add a plot of wanted columns of a dataframe.
     show_all = "yes" for scatterplot of all datapoints
