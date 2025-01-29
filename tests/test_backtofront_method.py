@@ -80,7 +80,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
     def test_boarding_sequence(self):
 
         """Ensure the boarding sequence generally follows the back-to-front method."""
-        print(f"{self.seat_assignment_method}")
 
         # Seated passengers
         seated_passengers = [

@@ -86,7 +86,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
 
     def test_boarding_sequence(self):
         """Validate Steffen Perfect boarding sequence."""
-        print(f"{self.seat_assignment_method}")
 
         seated_passengers = [
             agent

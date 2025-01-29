@@ -82,7 +82,6 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
 
     def test_boarding_sequence(self):
         """Validate Segmented Random boarding sequence."""
-        print(f"{self.seat_assignment_method}")
 
         seated_passengers = [
             agent
@@ -149,7 +148,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                 
 
 class TestSeatsSegmentedRandom(BoardingMethodTestBase):
-    seat_assignment_method = "segmented_random"
+    seat_assignment_method = "segmented_random_4"
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
