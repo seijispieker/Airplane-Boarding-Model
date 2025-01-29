@@ -52,7 +52,7 @@ To plot the experiment results:
 ## How to run tests
 
 ```
-    $ python -m unittest discover -s tests
+    $ python -m unittest discover -v tests
 ```
 
 ## References
