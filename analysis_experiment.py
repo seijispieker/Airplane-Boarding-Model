@@ -13,7 +13,8 @@ def plot_boarding_times_conformance():
         "outside_in": "results/experiment/results_outside_in.csv",
         "segmented_random_3": "results/experiment/results_segmented_random_3.csv",
         "segmented_random_4": "results/experiment/results_segmented_random_4.csv",
-        "steffen_perfect": "results/experiment/results_steffen_perfect.csv"
+        "steffen_perfect": "results/experiment/results_steffen_perfect.csv",
+        "back_to_front": "results/experiment/results_back_to_front.csv"
     }
 
     results_df = pd.read_csv("results/experiment/results.csv")
