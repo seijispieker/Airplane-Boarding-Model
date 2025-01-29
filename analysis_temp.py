@@ -41,7 +41,7 @@ def check_model(df1, df2, n_iterations=10000):
     return slope
 
 
-def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", label="trend", marker="x"):
+def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="blue", label="Trend line", marker="x"):
     """
     add a plot of wanted columns of a dataframe.
     show_all = "yes" for scatterplot of all datapoints
@@ -52,19 +52,19 @@ def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", la
     trend = np.polyfit(df[x], df[y], 1)
     trendline = np.polyval(trend, passenger_counts)
 
-    #plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
-    sns.regplot(data=df, scatter=False, x=x, y=y, label= label, color=color)
+    plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
+    # sns.regplot(data=df, scatter=False, x=x, y=y, label= label, color=color)
 
-    if show_all == "yes":
-        plt.scatter(
-            df[x],
-            df[y],
-            color=color,
-            alpha=0.5,
-            label=f"all data {label}",
-            s=10,
-            marker=marker
-        )
+    # if show_all == "yes":
+    #     plt.scatter(
+    #         df[x],
+    #         df[y],
+    #         color=color,
+    #         alpha=0.5,
+    #         label=f"all data {label}",
+    #         s=10,
+    #         marker=marker
+    #     )
 
 # boarding_times_df_btf = pd.read_csv("results/validation/boarding_times.csv")
 # boarding_times_df = pd.read_csv("results/experiment/results.csv")

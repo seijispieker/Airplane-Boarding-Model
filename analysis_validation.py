@@ -5,6 +5,7 @@ import pandas as pd
 from scipy.stats import linregress
 
 from analysis_temp import plot_graph_trend
+from analysis_temp import check_model
 
 def main():
     boarding_times_files = glob.glob("results/validation/boarding_times_*.csv")
@@ -12,13 +13,12 @@ def main():
         [pd.read_csv(file) for file in boarding_times_files], ignore_index=True
         )
 
-    boarding_times_df["Time"] = boarding_times_df["Time (s)"] /60
     # seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
     compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
 
     plot_number_of_passengers_boarding_time(boarding_times_df, compare_df)
-    plot_graph_trend(compare_df, "people", "boarding time")
-    plot_graph_trend(boarding_times_df, "number_of_passengers", "Time")
+    check_model(boarding_times_df, compare_df)
+
     # plot_shuffle_time_boxplot(seat_shuffle_times_df)
 
     #check_model(boarding_times_df, compare_df, n_iterations= 1000)
@@ -37,16 +37,6 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
 
     #Field Comparison
     real_data_df = compare_df
-
-    # grouped = boarding_times_df.groupby("number_of_passengers")["Time (s)"].mean()
-
-    # passenger_counts =  grouped.index
-    # mean_boarding_times = grouped.values / 60 
-
-    # real_grouped = real_data_df.groupby("people")["boarding time"].mean()
-
-    # passenger_countsreal = real_grouped.index
-    # mean_boarding_timesreal = real_grouped.values
 
     plt.figure(figsize=(8, 6))
     #Plot Real Data
@@ -75,6 +65,10 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     # trendline = np.polyval(trend, passenger_counts)
 
     # plt.plot(passenger_counts, trendline, linestyle="--", color="black", label="Trend Line")
+    plot_graph_trend(compare_df, "people", "boarding time")
+
+    boarding_times_df["Time"] = boarding_times_df["Time (s)"] /60
+    plot_graph_trend(boarding_times_df, "number_of_passengers", "Time")
 
     plt.title("Boarding Time vs Passenger Occupancy")
     plt.xlabel("Passengers")
