@@ -18,15 +18,15 @@ def main():
     plot_number_of_passengers_boarding_time(boarding_times_df, compare_df)
     plt.title(f"Boarding Time vs Passenger Occupancy \n{slope}")
     
-    seat_shuffle_time_files = glob.glob("results/validation/boarding_times_*.csv")
+    seat_shuffle_time_files = glob.glob("results/validation/seat_shuffle_times_*.csv")
     seat_shuffle_times_df = pd.concat(
         [pd.read_csv(file) for file in seat_shuffle_time_files], ignore_index=True
     )
 
     plot_shuffle_time_comparison(seat_shuffle_times_df)
-    plot_seat_shuffle_waiting_times()
+    plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
 
-    plt.show()
+
 def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, compare_df):
     """
     Plots the boarding time versus the passenger occupancy of the plane, 
@@ -56,16 +56,18 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
         s=10,
     )
 
-    plot_graph_trend(compare_df, "people", "boarding time", label=" Field Trials Trend line")
+    plot_graph_trend(compare_df, "people", "boarding time", label=" Field Trials Trend line", color="black")
 
     boarding_times_df["Time"] = boarding_times_df["Time (s)"] /60
-    plot_graph_trend(boarding_times_df, "number_of_passengers", "Time", label="Experiment Trend line")
+    plot_graph_trend(boarding_times_df, "number_of_passengers", "Time", label="Simulation Trend line", color="blue")
 
     
     plt.xlabel("Passengers")
     plt.ylabel("Boarding Time (min)")
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.legend()
+    plt.savefig("results/validation/boarding_time_vs_passenger_occupancy.png")
+    # plt.show()
     
 
 def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame):
@@ -168,18 +170,14 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame):
     # plt.show()
     
 
-def plot_seat_shuffle_waiting_times():
+def plot_seat_shuffle_waiting_times(seat_shuffle_times_df):
     """
     Loads all seat shuffle time data from 'results/validation' and
     plots a boxplot for seat shuffle waiting times categorized by shuffle type (B, C, D),
     excluding cases where waiting time is 0. The legend contains the count and adjusted percentages.
     """
     shuffle_types = ["B", "C", "D"]
-    folder_path = "results/validation"
     
-    seat_shuffle_files = [f for f in os.listdir(folder_path) if f.startswith("seat_shuffle_times") and f.endswith(".csv")]
-    seat_shuffle_times_df = pd.concat([pd.read_csv(os.path.join(folder_path, file)) for file in seat_shuffle_files], ignore_index=True)
-
     plt.figure(figsize=(10, 6))
 
     filtered_df = seat_shuffle_times_df[seat_shuffle_times_df["Seat shuffle type (A/B/C/D)"].isin(shuffle_types)]
@@ -234,7 +232,9 @@ def plot_seat_shuffle_waiting_times():
 
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.tight_layout()
-    plt.show()
+    # plt.show()
+    plt.savefig("results/validation/seat_shuffle_waiting_times.png")
+
 
 def check_model(df1, df2, n_iterations=10000):
     '''
