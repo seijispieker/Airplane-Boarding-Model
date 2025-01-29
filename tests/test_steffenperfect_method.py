@@ -1,19 +1,12 @@
 import unittest
-from abc import ABC
 
 from airplane_boarding_model.boarding_model import BoardingModel
 from airplane_boarding_model.passenger import Passenger
 
 
-class BoardingMethodTestBase(unittest.TestCase, ABC):
+class SteffenPerfectTestCase(unittest.TestCase):
     """Base class for boarding method tests."""
-    seat_assignment_method = None
-
-    @classmethod
-    def setUpClass(cls):
-        """Skip execution if this is the base class."""
-        if cls is BoardingMethodTestBase:
-            raise unittest.SkipTest("Skipping base test class")
+    seat_assignment_method = "steffen_perfect"
         
     def setUp(self):
         """Set up the model for the specified boarding method."""
@@ -141,10 +134,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
                             passenger.arrival_time,
                             f"Middle/Aisle passenger {passenger.unique_id} boarded before a window passenger in Row {row}."
                         )
-
-class TestSeatsSteffenPerfect(BoardingMethodTestBase):
-    seat_assignment_method = "steffen_perfect"
-
+                        
 
 if __name__ == "__main__":
-    unittest.main(verbosity=2, exit=False)
+    unittest.main()

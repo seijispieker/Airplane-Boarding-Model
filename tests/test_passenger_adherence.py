@@ -1,5 +1,7 @@
 import unittest
+
 from airplane_boarding_model.boarding_model import BoardingModel
+
 
 class PassengerAdherenceTestCase(unittest.TestCase):
     def setUp(self):
@@ -18,6 +20,7 @@ class PassengerAdherenceTestCase(unittest.TestCase):
 
         self.assertNotEqual(method_seats, adherence_seats)
         self.assertCountEqual(method_seats, adherence_seats) # order doesn't matter
+
 
 if __name__ == '__main__':
     unittest.main()

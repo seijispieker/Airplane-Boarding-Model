@@ -5,15 +5,10 @@ import numpy
 from airplane_boarding_model.boarding_model import BoardingModel
 from airplane_boarding_model.passenger import Passenger
 
-class BoardingMethodTestBase(unittest.TestCase):
-    """Base class for boarding method tests."""
-    seat_assignment_method = None
 
-    @classmethod
-    def setUpClass(cls):
-        """Skip execution if this is the base class."""
-        if cls is BoardingMethodTestBase:
-            raise unittest.SkipTest("Skipping base test class")
+class RandomTestCase(unittest.TestCase):
+    """Base class for boarding method tests."""
+    seat_assignment_method = "random"
         
     def setUp(self):
         """Set up the model for the specified boarding method."""
@@ -116,8 +111,6 @@ class BoardingMethodTestBase(unittest.TestCase):
             f"Boarding sequence does not appear random (p = {p_value}). Chi2 = {chi2_stat}, Counts = {counts}"
         )
 
-class TestSeatsRandom(BoardingMethodTestBase):
-    seat_assignment_method = "random"
 
 if __name__ == "__main__":
     unittest.main()
