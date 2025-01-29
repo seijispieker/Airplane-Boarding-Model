@@ -1,23 +1,28 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import glob
 from scipy.stats import linregress
 
 
+
 def main():
-    boarding_times_df = pd.read_csv("results/validation/boarding_times.csv")
-    seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
-    compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
+    boarding_time_files = glob.glob("results/validation/boarding_times_*.csv")
+    boarding_times_df = pd.concat(
+        [pd.read_csv(file) for file in boarding_time_files], ignore_index=True
+    )
 
-    #plot_number_of_passengers_boarding_time(boarding_times_df)
-    #plot_shuffle_time_boxplot(seat_shuffle_times_df)
-    #check_model(boarding_times_df, compare_df, n_iterations= 1000)
-    plot_shuffle_time_comparison(
-    seat_shuffle_times_df,
-    real_data_path="comparison_data/seat_shuffle_data.csv"
-)
+    seat_shuffle_time_files = glob.glob("results/validation/seat_shuffle_times_*.csv")
+    seat_shuffle_times_df = pd.concat(
+        [pd.read_csv(file) for file in seat_shuffle_time_files], ignore_index=True
+    )
 
-    plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
+    compare_df = pd.read_csv("comparison_data/seat_shuffle_data.csv")
+    plot_shuffle_time_comparison(seat_shuffle_times_df, real_data_path="comparison_data/seat_shuffle_data.csv")
+    #plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
+
+
+    #plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
     
 def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame):
     """
@@ -72,11 +77,24 @@ def plot_shuffle_time_boxplot(seat_shuffle_times_df: pd.DataFrame):
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.show()
 
-def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_path: str):
+def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_path: str = "comparison_data/seat_shuffle_data.csv"):
     """
     Plots a boxplot of seat shuffle times categorized by shuffle type (A, B, C, D).
     Moves the count and percentage data to the legend instead of the graph itself.
     """
+    file_pattern = "results/validation/seat_shuffle_times_*.csv"
+    seat_shuffle_files = glob.glob(file_pattern)
+
+    if not seat_shuffle_files:
+        print("No seat shuffle time files found.")
+        return
+
+    # Read all matching files and concatenate them into one DataFrame
+    seat_shuffle_times_df = pd.concat(
+        [pd.read_csv(file) for file in seat_shuffle_files], ignore_index=True
+    )
+
+    # Load real-world data
     real_data_df = pd.read_csv(real_data_path)
 
     # Map seat shuffle numbers to shuffle types
@@ -154,7 +172,6 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame, real_data_
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.tight_layout()
     plt.show()
-
 
 def plot_seat_shuffle_waiting_times(seat_shuffle_times_df: pd.DataFrame):
     """
