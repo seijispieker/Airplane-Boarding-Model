@@ -191,7 +191,7 @@ def post_process_space(ax: plt.Axes):
     row_number = 1
     for col_index in range(6, adjusted_grid_width - 2, 2):
         ax.text(
-            col_index,
+            col_index + 0.5,
             -1,
             str(row_number),
             fontsize=10,
@@ -210,13 +210,13 @@ def post_process_space(ax: plt.Axes):
                 (5 - 0.5, row_index - 0.5), 
                 0.5,  
                 1,  
-                color="gray",
-                alpha=0.3,
-                zorder=0,
+                color="white",
+                alpha=1,
+                zorder=1,
             )
         )
 
-        penultimate_col = adjusted_grid_width - 3  
+        penultimate_col = adjusted_grid_width - 2 
         ax.add_patch(
             plt.Rectangle(
                 (penultimate_col - 0.5, row_index - 0.5),  
@@ -224,7 +224,7 @@ def post_process_space(ax: plt.Axes):
                 1, 
                 color="blue",
                 alpha=0.3,
-                zorder=0,
+                zorder=1,
             )
         )
 
