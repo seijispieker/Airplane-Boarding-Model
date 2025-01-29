@@ -36,7 +36,7 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     #Field Comparison
     real_data_df = compare_df
 
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(16, 8))
     #Plot Real Data
     plt.scatter(
         real_data_df["people"],
