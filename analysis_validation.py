@@ -41,7 +41,7 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
         boarding_times_df["number_of_passengers"],
         boarding_times_df["Time (s)"] / 60,
         color="purple",
-        alpha=0.060,
+        alpha=0.2,
         label="Simulation Data",
         s=10,
     )
@@ -256,12 +256,12 @@ def check_model(df1, df2, n_iterations=10000):
 
     #making print for graph
     if lower <= 0 <= upper:
-        slope = f"Slope of model is similar!, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Model Slope Matches Real Data - Slope Range ange: [{lower:.4f}, {upper:.4f}]"
     else:
-        slope = f"Slope of model is incorrect, range: [{lower:.4f}, {upper:.4f}]"
+        slope = f"Model Slope Does Not Match Real Data - Slope Range: [{lower:.4f}, {upper:.4f}]"
     return slope
 
-def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", label="Trend line", marker="x"):
+def plot_graph_trend(df, x, y, show_all = "yes", linestyle="-", color="green", label="Trend line", marker="x", linewidth=2):
     """
     add a plot of wanted columns of a dataframe.
     show_all = "yes" for scatterplot of all datapoints
@@ -273,7 +273,7 @@ def plot_graph_trend(df, x, y, show_all = "yes", linestyle="--", color="red", la
     trend = np.polyfit(df[x], df[y], 1)
     trendline = np.polyval(trend, passenger_counts)
 
-    plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label)
+    plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label, linewidth=linewidth)
 
 if __name__ == "__main__":
     main()
