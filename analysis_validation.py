@@ -21,9 +21,10 @@ def main():
     slope = check_model(boarding_times_df, compare_df, n_iterations=1000)
     plot_number_of_passengers_boarding_time(boarding_times_df, compare_df)
     plt.title(f"Boarding Time vs Passenger Occupancy \n{slope}")
-    plt.show()
+    plt.savefig("results/validation/boarding_time_vs_occupancy.png")
 
-    # plot_shuffle_time_boxplot(seat_shuffle_times_df)
+    seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
+    plot_shuffle_time_comparison(seat_shuffle_times_df)
 
     #check_model(boarding_times_df, compare_df, n_iterations= 1000)
 #     plot_shuffle_time_comparison(
@@ -31,7 +32,7 @@ def main():
 #     real_data_path="comparison_data/seat_shuffle_data.csv"
 # )
 
-    # plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
+    plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
     
 def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, compare_df):
     """
@@ -47,7 +48,7 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     plt.scatter(
         real_data_df["people"],
         real_data_df["boarding time"],
-        color="red",
+        color="purple",
         alpha=0.5,
         label="Field Data",
         s=10,
@@ -56,7 +57,7 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     plt.scatter(
         boarding_times_df["number_of_passengers"],
         boarding_times_df["Time (s)"] / 60,
-        color="black",
+        color="green",
         alpha=0.5,
         label="Simulation Data",
         s=10,
