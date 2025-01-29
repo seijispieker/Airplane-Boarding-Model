@@ -86,7 +86,7 @@ def agent_portayal(agent: mesa.Agent):
     portrayal["color"] = colors[color_index]
     
     if agent.seated:
-        portrayal["alpha"] = 0.6
+        portrayal["alpha"] = 0.4
     
     return portrayal
 
