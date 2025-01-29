@@ -80,11 +80,11 @@ def plot_boarding_times_conformance():
         plt.xlabel("Conformance Rate (%)")
         plt.ylabel("Boarding Time (min)")
         plt.title(title)
-        plt.legend(handles=legend_labels, title="Seat Assignment Strategy", loc="upper left")
+        plt.legend(handles=legend_labels, title="Seat Assignment Strategy", loc="lower left")
 
         plt.grid(True, linestyle="--", linewidth=0.7)
         plt.xlim(0, 100)
-        plt.ylim(15, 35)
+        plt.ylim(12.5, 30)
         plt.savefig(f"results/experiment/{title}.png")
 
     plot_graph(graph_1_strategies, "Boarding Time vs Conformance Rate")
