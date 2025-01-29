@@ -20,27 +20,7 @@ To launch the interactive server, run:
 ## Run tests
 
 ```
-    $ python -m unittest tests/*.py
-
-    For test_random_method.py
-
-    $ python -m unittest tests.test_random_method.SeatsRandomTestCase 
-
-    For test_backtofront_method.py
-
-    $ python -m unittest tests.test_backtofront_method.SeatsBackToFrontTestCase
-
-    For test_steffenperfect_method.py
-
-    $ python -m unittest tests.test_steffenperfect_method.SeatsSteffenPerfectTestCase
-
-    For test_outsidein_method.py
-
-    $ python -m unittest tests.test_outsidein_method.SeatsOutsideInTestCase
-
-    For test_segmentedrandom_method.py
-
-    $ python -m unittest tests.test_segmentedrandom_method.SeatsSegmentedRandomTestCase
+    $ python -m unittest discover -s tests
 
 ```
 

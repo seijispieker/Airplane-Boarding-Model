@@ -9,6 +9,12 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
     """Base class for boarding method tests."""
     seat_assignment_method = None
 
+    @classmethod
+    def setUpClass(cls):
+        """Skip execution if this is the base class."""
+        if cls is BoardingMethodTestBase:
+            raise unittest.SkipTest("Skipping base test class")
+        
     def setUp(self):
         """Set up the model for the specified boarding method."""
         parameters = {
@@ -35,6 +41,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         while self.model.running:
             self.model.step()
 
+    #Seat type function 
     def get_seat_type(self, column):
         """Determine seat type based on column index."""
         if column in [0, 6]:
@@ -54,7 +61,7 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             for agent in self.model.grid.get_cell_list_contents([pos[1]])
             if isinstance(agent, Passenger) and agent.seated
         ]
-        print(f"Test: {self._testMethodName} - Total Number of Passengers for the simulation: {self.model.number_of_passengers}, Seated: {len(seated_passengers)}")
+        
         self.assertEqual(self.model.number_of_passengers, len(seated_passengers))
 
     def test_number_of_assigned_seats(self):
@@ -67,14 +74,14 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
         ]
 
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.occupied]
-        print(f"Test: {self._testMethodName} - Seated Passengers: {len(seated_passengers)}, Assigned Seats: {len(assigned_seats)}")
+
         self.assertEqual(len(seated_passengers), len(assigned_seats))
 
     def test_unique_seat_assignments(self):
         """Ensure no two passengers are assigned to the same seat."""
         assigned_seats = [seat for seat in self.model.airplane.seats_list() if seat.assigned_passenger is not None]
         assigned_passengers = [seat.assigned_passenger for seat in assigned_seats]
-        print(f"Test: {self._testMethodName} - Assigned Passengers: {len(assigned_passengers)}, Unique Assigned Passengers: {len(set(assigned_passengers))}")
+        
         self.assertEqual(len(set(assigned_passengers)), len(assigned_passengers))
 
     def test_boarding_sequence(self):
@@ -88,15 +95,16 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             if isinstance(agent, Passenger) and agent.seated
         ]
 
-        print("\nSeating Order (By Time Seated):")
+        # print("\nSeating Order (By Time Seated):")
         sorted_seated_passengers = sorted(seated_passengers, key=lambda p: p.arrival_time)
-        for passenger in sorted_seated_passengers:
-            seat_coords = passenger.assigned_seat.grid_coordinate
-            print(
-                f"Passenger {passenger.unique_id} seated at {seat_coords} "
-                f"(Row {seat_coords[0]}, Column {seat_coords[1]}) "
-                f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
-            )
+
+        # for passenger in sorted_seated_passengers:
+        #     seat_coords = passenger.assigned_seat.grid_coordinate
+        #     print(
+        #         f"Passenger {passenger.unique_id} seated at {seat_coords} "
+        #         f"(Row {seat_coords[0]}, Column {seat_coords[1]}) "
+        #         f"at time {passenger.arrival_time} ({self.get_seat_type(seat_coords[1])} seat)"
+        #     )
 
         # Groups by row for Steffen Perfect validation
         seated_passengers_by_row = {}
@@ -107,33 +115,35 @@ class BoardingMethodTestBase(unittest.TestCase, ABC):
             seated_passengers_by_row[row].append(passenger)
 
         # Validates row-by-row seating order
-        print("\nRow-by-Row Seating (Steffen Perfect Validation):")
-        for row, passengers in sorted(seated_passengers_by_row.items(), reverse=True):
-            print(
-                f"Row {row}: {[(p.assigned_seat.grid_coordinate, p.arrival_time, self.get_seat_type(p.assigned_seat.grid_coordinate[1])) for p in passengers]}"
-            )
+        # print("\nRow-by-Row Seating (Steffen Perfect Validation):")
+        # for row, passengers in sorted(seated_passengers_by_row.items(), reverse=True):
+        #     print(
+        #         f"Row {row}: {[(p.assigned_seat.grid_coordinate, p.arrival_time, self.get_seat_type(p.assigned_seat.grid_coordinate[1])) for p in passengers]}"
+        #     )
 
-        # Validates adherence to Steffen Perfect method
-        for i, passenger in enumerate(sorted_seated_passengers):
-            if i > 0:
-                prev_passenger = sorted_seated_passengers[i - 1]
-                prev_row, prev_column = prev_passenger.assigned_seat.grid_coordinate
-                curr_row, curr_column = passenger.assigned_seat.grid_coordinate
+        # Validate window passengers board first in each row
+        for row, passengers in seated_passengers_by_row.items():
+            earliest_window_time = None
+            for passenger in passengers:
+                seat_type = self.get_seat_type(passenger.assigned_seat.grid_coordinate[1])
+                if seat_type == "window":
+                    if earliest_window_time is None:
+                        earliest_window_time = passenger.arrival_time
+                    else:
+                        self.assertGreaterEqual(
+                            passenger.arrival_time,
+                            earliest_window_time,
+                            f"Window passenger {passenger.unique_id} in Row {row} boarded out of order."
+                        )
+                elif seat_type in ["middle", "aisle"]:
+                    if earliest_window_time is not None:
+                        self.assertLessEqual(
+                            earliest_window_time,
+                            passenger.arrival_time,
+                            f"Middle/Aisle passenger {passenger.unique_id} boarded before a window passenger in Row {row}."
+                        )
 
-                if (
-                    prev_row == curr_row
-                    and self.get_seat_type(prev_column) == "aisle"
-                    and self.get_seat_type(curr_column) == "middle"
-                    and prev_passenger.arrival_time > passenger.arrival_time
-                ):
-                    self.fail(
-                        f"Aisle passenger {prev_passenger.unique_id} seated after middle passenger "
-                        f"{passenger.unique_id} in Row {curr_row}, violating Steffen Perfect method."
-                    )
-
-        print("\nSteffen Perfect Method Validation Passed!")
-
-class SeatsSteffenPerfectTestCase(BoardingMethodTestBase):
+class TestSeatsSteffenPerfect(BoardingMethodTestBase):
     seat_assignment_method = "steffen_perfect"
 
 
