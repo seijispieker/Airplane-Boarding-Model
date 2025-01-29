@@ -76,7 +76,7 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame):
     nonzero_counts = seat_shuffle_times_df[seat_shuffle_times_df["Seat shuffle time (s)"] > 0] \
         .groupby("Seat shuffle type (A/B/C/D)")["Seat shuffle time (s)"].count()
 
-    legend_entries = ["Shuffle Time Comparison:"]
+    legend_entries = ["Our Model:"]
 
     # Plot simulated data as boxplots
     for i, shuffle_type in enumerate(shuffle_types, start=1):
@@ -151,6 +151,7 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame):
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.tight_layout()
     plt.show()
+    plt.savefig("results/validation/seat_shuffle_time_comparison.png")
 
 def plot_seat_shuffle_waiting_times():
     """
@@ -194,11 +195,11 @@ def plot_seat_shuffle_waiting_times():
         total_waiting_cases += waiting_count  
         percentage = (waiting_count / total_non_A_count * 100) if total_non_A_count > 0 else 0
 
-        legend_texts.append(f"{shuffle_type} > 0: n={waiting_count}, {percentage:.1f}% of total") 
+        legend_texts.append(f"{shuffle_type} > 0: n={waiting_count}, {percentage:.1f}% of all") 
 
     # Calculate total percentage
     total_percentage = (total_waiting_cases / total_non_A_count * 100) if total_non_A_count > 0 else 0
-    legend_texts.append(f"Total > 0: n={total_waiting_cases}, {total_percentage:.1f}%")
+    legend_texts.append(f"Total > 0: n={total_waiting_cases}, {total_percentage:.1f}% of all")
 
     boxprops = dict(facecolor="lightblue", color="blue")
     medianprops = dict(color="blue", linewidth=2)
@@ -208,7 +209,7 @@ def plot_seat_shuffle_waiting_times():
     plt.xticks(range(1, len(shuffle_types) + 1), shuffle_types)
     plt.xlabel("Shuffle Type (B/C/D)")
     plt.ylabel("Waiting Time (s)")
-    plt.title("Seat Shuffle Waiting Times by Type")
+    plt.title("Seat Shuffle Waiting Time > 0 by Type")
 
     plt.text(
         1.05, 0.95, "\n".join(legend_texts), transform=plt.gca().transAxes,
@@ -219,6 +220,7 @@ def plot_seat_shuffle_waiting_times():
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.tight_layout()
     plt.show()
+    plt.savefig("results/validation/seat_shuffle_waiting_times.png")
 
 if __name__ == "__main__":
     main()
