@@ -27,7 +27,7 @@ def plot_boarding_times_conformance():
         file_path = os.path.join(results_dir, filename)
         if os.path.exists(file_path):
             df = pd.read_csv(file_path)
-            df["strategy"] = strategy 
+            df["strategy"] = strategy  
             results_df = pd.concat([results_df, df], ignore_index=True)
 
     if results_df.empty:
@@ -56,15 +56,15 @@ def plot_boarding_times_conformance():
     graph_1_strategies = ["random", "back_to_front", "outside_in", "steffen_perfect"]
     graph_2_strategies = ["random", "segmented_random_3", "segmented_random_4"]
 
-    random_std_values = []
+    random_std = None
     if "random" in strategy_data:
         all_random_values = [time for conf in strategy_data["random"] for time in strategy_data["random"][conf]]
         if all_random_values:
             random_std = pd.Series(all_random_values).std()
-            random_std_values.append(f"Random Std: {random_std:.2f} min")
 
     def plot_graph(selected_strategies, title):
         plt.figure(figsize=(10, 6))
+        legend_labels = []
 
         for strategy in selected_strategies:
             if strategy in strategy_data:
@@ -72,7 +72,7 @@ def plot_boarding_times_conformance():
                 mean_times = [pd.Series(strategy_data[strategy][conf]).mean() for conf in conf_list]
                 std_times = [pd.Series(strategy_data[strategy][conf]).std() for conf in conf_list]
 
-                plt.plot(conf_list, mean_times, label=strategy, linewidth=2)
+                line, = plt.plot(conf_list, mean_times, linewidth=2, label=strategy)
 
                 if strategy != "random":
                     plt.fill_between(conf_list, 
@@ -80,14 +80,15 @@ def plot_boarding_times_conformance():
                                      [m + s for m, s in zip(mean_times, std_times)], 
                                      alpha=0.2)
 
+                legend_labels.append(line)
+
+        if random_std is not None:
+            legend_labels.append(plt.Line2D([0], [0], linestyle="none", label=f"Random Std: {random_std:.2f} min"))
+
         plt.xlabel("Conformance Rate (%)")
         plt.ylabel("Boarding Time (min)")
         plt.title(title)
-        plt.legend(title="Seat Assignment Strategy")
-
-        if random_std_values:
-            plt.text(1.02, 0.95, "\n".join(random_std_values), transform=plt.gca().transAxes, fontsize=10,
-                     verticalalignment="top", bbox=dict(facecolor="white", alpha=0.8, edgecolor="black"))
+        plt.legend(handles=legend_labels, title="Seat Assignment Strategy", loc="upper left")
 
         plt.grid(True, linestyle="--", linewidth=0.7)
         plt.xlim(0, 100)
