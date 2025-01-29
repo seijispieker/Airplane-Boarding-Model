@@ -12,24 +12,12 @@ def main():
     boarding_times_df = pd.concat(
         [pd.read_csv(file) for file in boarding_times_files], ignore_index=True
         )
-
-    # seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
     compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
 
     slope = check_model(boarding_times_df, compare_df, n_iterations=1000)
     plot_number_of_passengers_boarding_time(boarding_times_df, compare_df)
     plt.title(f"Boarding Time vs Passenger Occupancy \n{slope}")
     plt.show()
-
-    # plot_shuffle_time_boxplot(seat_shuffle_times_df)
-
-    #check_model(boarding_times_df, compare_df, n_iterations= 1000)
-#     plot_shuffle_time_comparison(
-#     seat_shuffle_times_df,
-#     real_data_path="comparison_data/seat_shuffle_data.csv"
-# )
-
-    # plot_seat_shuffle_waiting_times(seat_shuffle_times_df)
     
 def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, compare_df):
     """
@@ -45,8 +33,8 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     plt.scatter(
         real_data_df["people"],
         real_data_df["boarding time"],
-        color="red",
-        alpha=0.5,
+        color="green",
+        alpha=0.8,
         label="Field Data",
         s=10,
     )
@@ -54,19 +42,12 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     plt.scatter(
         boarding_times_df["number_of_passengers"],
         boarding_times_df["Time (s)"] / 60,
-        color="black",
-        alpha=0.5,
+        color="purple",
+        alpha=0.060,
         label="Simulation Data",
         s=10,
     )
 
-    # plt.plot(passenger_counts, mean_boarding_times, color="black", label="Mean Boarding Time - Our Model")
-    # plt.plot(passenger_countsreal, mean_boarding_timesreal, color="red", label="Mean Boarding Time - Field")
-
-    # trend = np.polyfit(boarding_times_df["number_of_passengers"] * 174, boarding_times_df["Time (s)"] / 60, 1)
-    # trendline = np.polyval(trend, passenger_counts)
-
-    # plt.plot(passenger_counts, trendline, linestyle="--", color="black", label="Trend Line")
     plot_graph_trend(compare_df, "people", "boarding time", label=" Field Trials Trend line")
 
     boarding_times_df["Time"] = boarding_times_df["Time (s)"] /60

@@ -37,7 +37,7 @@ def check_model(df1, df2, n_iterations=10000):
     if lower <= 0 <= upper:
         slope = f"Slope of model is similar!, range: [Lower Slope{lower:.4f}, Upper Slope{upper:.4f}]"
     else:
-        slope = f"Slope of model is incorrect, range: [Lower Slope{lower:.4f}, Upper Slope{upper:.4f}]"
+        slope = f"Slope of our model is incorrect, range: [Lower Slope{lower:.4f}, Upper Slope{upper:.4f}]"
     return slope
 
 
