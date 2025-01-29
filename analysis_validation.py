@@ -16,8 +16,10 @@ def main():
     # seat_shuffle_times_df = pd.read_csv("results/validation/seat_shuffle_times.csv")
     compare_df = pd.read_csv("comparison_data/scatter_soure.csv")
 
+    slope = check_model(boarding_times_df, compare_df, n_iterations=1000)
     plot_number_of_passengers_boarding_time(boarding_times_df, compare_df)
-    check_model(boarding_times_df, compare_df)
+    plt.title(f"Boarding Time vs Passenger Occupancy \n{slope}")
+    plt.show()
 
     # plot_shuffle_time_boxplot(seat_shuffle_times_df)
 
@@ -70,12 +72,12 @@ def plot_number_of_passengers_boarding_time(boarding_times_df: pd.DataFrame, com
     boarding_times_df["Time"] = boarding_times_df["Time (s)"] /60
     plot_graph_trend(boarding_times_df, "number_of_passengers", "Time")
 
-    plt.title("Boarding Time vs Passenger Occupancy")
+    
     plt.xlabel("Passengers")
     plt.ylabel("Boarding Time (min)")
     plt.grid(True, linestyle=":", linewidth=0.7)
     plt.legend()
-    plt.show()
+    
 
 def plot_shuffle_time_boxplot(seat_shuffle_times_df: pd.DataFrame):
     """
@@ -266,6 +268,8 @@ def check_model(df1, df2, n_iterations=10000):
     #bootstrapping slope
     slopes_model = bootstrap_slopes(df1, "number_of_passengers", "Time (s)", y_multiplyer= 60, n_iterations= n_iterations)
     slopes_real = bootstrap_slopes(df2, "people", "boarding time", n_iterations= n_iterations)
+    lower, upper = np.percentile(slopes_model, [2.5, 97.5])
+    print(lower, upper)
 
     #checking range of bootstrapped slopes
     difference = slopes_model - slopes_real
@@ -273,54 +277,10 @@ def check_model(df1, df2, n_iterations=10000):
 
     #making print for graph
     if lower <= 0 <= upper:
-        slope = "slope of model is similar!"
+        slope = f"slope of model is similar!, range: [{lower:.4f}, {upper:.4f}]"
     else:
-        slope = f"slope of model is incorrect, difference: [{lower:.4f}, {upper:.4f}]"
-    
-    
-    #--- plotting graphs
-    grouped = df1.groupby("number_of_passengers")["Time (s)"].mean()
-    passenger_counts = grouped.index
-
-    #scatter model data
-    plt.figure(figsize=(8, 6))
-    plt.scatter(
-        df1["number_of_passengers"],
-        df1["Time (s)"] / 60,
-        color="red",
-        alpha=0.5,
-        label="Simulation Data",
-        s=10,
-    )
-
-    #trendline model data
-    trend = np.polyfit(df1["number_of_passengers"], df1["Time (s)"] / 60, 1)
-    trendline = np.polyval(trend, passenger_counts)
-    plt.plot(passenger_counts, trendline, linestyle="--", color="red", label="Trend model")
-
-    #scatter real data
-    plt.scatter(
-        df2["people"],
-        df2["boarding time"] ,
-        color="black",
-        alpha=0.5,
-        label="real data",
-        s=10,
-        marker="x",
-    )
-    
-    #trendline real data
-    trend = np.polyfit(df2["people"], df2["boarding time"] , 1)
-    trendline = np.polyval(trend, df2["people"])
-    plt.plot(df2["people"], trendline, linestyle="--", color="black", label="Trend real")
-
-    #graph visuals
-    plt.title(f"combined graph. \n{slope}")
-    plt.xlabel("Passengers")
-    plt.ylabel("Boarding Time (min)")
-    plt.grid(True, linestyle="--", linewidth=0.7)
-    plt.legend()
-    plt.show()
+        slope = f"slope of model is incorrect, range: [{lower:.4f}, {upper:.4f}]"
+    return slope
 
 if __name__ == "__main__":
     main()
