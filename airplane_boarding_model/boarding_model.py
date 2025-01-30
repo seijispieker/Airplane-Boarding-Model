@@ -311,8 +311,7 @@ class BoardingModel(mesa.Model):
                     seats_picked += 1                               
             i += 1
         
-        flatten = lambda xss: [x for xs in xss for x in xs]
-        method_list = flatten(random_segmented_seats)
+        method_list = self.flatten(random_segmented_seats)
         method_list = self.passenger_adherence(method_list)
         
         i = -1
@@ -426,8 +425,7 @@ class BoardingModel(mesa.Model):
                     seats_picked += 1                               
             i += 1
         
-        flatten = lambda xss: [x for xs in xss for x in xs]
-        method_list = flatten(random_segmented_seats)
+        method_list = self.flatten(random_segmented_seats)
         method_list = self.passenger_adherence(method_list)
         
         i = -1
@@ -485,8 +483,7 @@ class BoardingModel(mesa.Model):
                 
             i += 1
 
-        flatten = lambda xss: [x for xs in xss for x in xs]
-        method_list = flatten(method_list)
+        method_list = self.flatten(method_list)
         method_list = self.passenger_adherence(method_list)
         
         return method_list
@@ -513,7 +510,6 @@ class BoardingModel(mesa.Model):
         for _ in range(12): # steffen is done in 12 steps
             steffen_layout.append([])
         for segment in segmented_layout:
-            seat = 4
             for element in segment: # using the defined steffen groups to seperate 
                 if int(str(element)[:-1]) % 2 == 0:
                     if str(element)[-1:] in ["A", "B", "C"]:
@@ -535,11 +531,13 @@ class BoardingModel(mesa.Model):
             i+=1
         
         #flattening the list of lists into a single big list
-        flatten = lambda xss: [x for xs in xss for x in xs]
-        method_list = flatten(steffen_layout)
+        method_list = self.flatten(steffen_layout)
         method_list = self.passenger_adherence(method_list)
 
         return method_list
+    
+    def flatten(self, xss):
+        return [x for xs in xss for x in xs]
     
     def seats_debug_B(self) -> list[Seat]:
         self.number_of_passengers = 10
