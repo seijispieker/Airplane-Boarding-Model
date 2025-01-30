@@ -24,22 +24,22 @@ model_params = {
         "value": 42,
         "label": "Random Seed",
     },
-    "steps_per_second": Slider(
-        label="Steps per Second",
-        value=2,
-        min=1,
-        max=100,
-        step=1,
-        dtype=int
-    ),
-    "aisle_speed": Slider(
-        label="Aisle Speed (m/s)",
-        value=0.8,
-        min=0,
-        max=2,
-        step=0.1,
-        dtype=float
-    ),
+    # "steps_per_second": Slider(
+    #     label="Steps per Second",
+    #     value=2,
+    #     min=1,
+    #     max=100,
+    #     step=1,
+    #     dtype=int
+    # ),
+    # "aisle_speed": Slider(
+    #     label="Aisle Speed (m/s)",
+    #     value=0.8,
+    #     min=0,
+    #     max=2,
+    #     step=0.1,
+    #     dtype=float
+    # ),
     "occupancy": Slider(
         label="Occupancy (0-1)",
         value=0.85,
