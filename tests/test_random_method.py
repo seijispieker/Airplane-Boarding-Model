@@ -1,6 +1,6 @@
-import unittest
-from scipy.stats import chisquare 
 import numpy
+from scipy.stats import chisquare
+import unittest
 
 from airplane_boarding_model.boarding_model import BoardingModel
 from airplane_boarding_model.passenger import Passenger

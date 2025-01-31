@@ -1,9 +1,7 @@
-import matplotlib.pyplot as plt
 import glob
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import glob
-import os
 from scipy.stats import linregress
 
 
@@ -83,11 +81,9 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame):
     shuffle_types = ["A", "B", "C", "D"]
 
     plt.figure(figsize=(10, 6))
-    bar_width = 0.2  # Box width
 
     # Compute totals for percentage calculation
     total_cases = len(seat_shuffle_times_df)
-    type_counts = seat_shuffle_times_df["Seat shuffle type (A/B/C/D)"].value_counts()
 
     # Cases where shuffle time > 0
     nonzero_counts = seat_shuffle_times_df[seat_shuffle_times_df["Seat shuffle time (s)"] > 0] \
@@ -145,7 +141,6 @@ def plot_shuffle_time_comparison(seat_shuffle_times_df: pd.DataFrame):
             )
 
     for shuffle_type in shuffle_types:
-        total = type_counts.get(shuffle_type, 0)
         nonzero = nonzero_counts.get(shuffle_type, 0)
         percentage = (nonzero / total_cases * 100) if total_cases > 0 else 0  
         legend_entries.append(f"{shuffle_type}: n={nonzero}, {percentage:.1f}%")
@@ -272,6 +267,7 @@ def check_model(df1, df2, n_iterations=10000):
         slope = f"Model Slope Does Not Match Real Data - Slope Range: [{lower:.4f}, {upper:.4f}]"
     return slope
 
+
 def plot_graph_trend(df, x, y, show_all = "yes", linestyle="-", color="green", label="Trend line", marker="x", linewidth=2):
     """
     add a plot of wanted columns of a dataframe.
@@ -286,7 +282,6 @@ def plot_graph_trend(df, x, y, show_all = "yes", linestyle="-", color="green", l
 
     plt.plot(passenger_counts, trendline, linestyle=linestyle, color=color, label=label, linewidth=linewidth)
 
+
 if __name__ == "__main__":
     main()
-
-

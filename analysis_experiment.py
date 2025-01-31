@@ -1,12 +1,11 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 import os
-import statistics
-
+import pandas as pd
 
 
 def main():
-    print(plot_boarding_times_conformance())
+    plot_boarding_times_conformance()
+
 
 def plot_boarding_times_conformance():
     results_dir = "results/experiment"

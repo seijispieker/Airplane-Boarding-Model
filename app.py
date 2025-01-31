@@ -2,9 +2,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import matplotlib.colors as mcolors
-import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
-
+import matplotlib.pyplot as plt
 from mesa.visualization import (
     Slider,
     SolaraViz,

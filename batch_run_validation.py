@@ -13,7 +13,7 @@ parameters = {
 }
 
 
-iteration_per_config = 100
+iterations_per_config = 100
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
         os.makedirs("results/validation")
 
     batches = []
-    batch_size = iteration_per_config
+    batch_size = iterations_per_config
 
     while batch_size > 10:
         batches.append(range(batch_size - 10, batch_size))

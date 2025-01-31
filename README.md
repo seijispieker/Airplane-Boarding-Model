@@ -1,9 +1,28 @@
 # Airplane Boarding Model
 Project Computational Science [5062PRCS6Y] - Project Team 5
 
+## Description
+This model is an extentsion of the calibrated stochastic aircraft model of Schultz (2018).
+
+This extension models the seat shuffling in an agent-based way (see Animations.md).
+
+
 ## Visualization
 
-![Airplane Boarding Model Visualization ](airplane_boarding_model_visuals.png)
+![Airplane Boarding Model Visualization](airplane_boarding_model_visuals.png)
+
+## Results
+
+### Validation
+![Boarding time vs number of passengers](results/validation/boarding_time_vs_passenger_occupancy.png)
+
+![Seat shuffle time comparison](results/validation/seat_shuffle_time_comparison.png)
+
+![Seat shuffle waiting times](results/validation/seat_shuffle_waiting_times.png)
+
+### Experiment
+
+![Boarding Time vs Conformance Rate](results/experiment/Boarding%20Time%20vs%20Conformance%20Rate.png)
 
 ## Installation
 
@@ -23,6 +42,8 @@ To launch the interactive server:
 
 ## How to collect the results
 
+### Validation
+
 To collect the results for the validation plots:
 
 ```
@@ -30,6 +51,8 @@ To collect the results for the validation plots:
 ```
 
 Validation results are outputted to a csv file in results/validation folder.
+
+### Experiment
 
 To collect the results for the experiment plots:
 
@@ -41,17 +64,25 @@ Experiment results are outputted to a csv file in results/experiment folder.
 
 ## How to plot the results
 
+### Validation
+
 To plot the validation results:
 
 ```
     $ python analysis_validation.py
 ```
 
+Validation plot images are saved in results/validation folder.
+
 To plot the experiment results:
 
 ```
     $ python analysis_experiment.py
 ```
+
+### Experiment
+
+Experiment plot image is saved in results/validation folder.
 
 ## How to run tests
 
@@ -61,6 +92,12 @@ To plot the experiment results:
 
 ## References
 
-- Schultz, Michael (Mar. 2018). “Field Trial Measurements to Validate a Stochastic Aircraft Boarding Model”. In: Aerospace 5.1 Number: 1 Publisher: Multidisciplinary Digital Publishing Institute, p. 27. issn: 2226-4310. doi: 10.3390/aerospace5010027.
-- Schultz, Michael, Thomas Kunze, and Hartmut Fricke (June 2013). “Boarding on the critical path of the turnaround”. In: Proceedings of the 10th USA/Europe Air Traffic Management Research and Development Seminar, ATM 2013.
-- Schultz, Michael, Christian Schulz, and Hartmut Fricke (June 2008). “Efficiency of Aircraft Boarding Procedures”. In: ICRAT - International Conference on Research in Airport Transportation.
+- Michael Schultz.
+Field trial measurements to validate a stochastic aircraft boarding model.
+Aerospace, 5:27, March 2018.
+- Michael Schultz, Thomas Kunze, and Hartmut Fricke.
+Boarding on the critical path of the turnaround.
+Proceedings of the 10th USA/Europe Air Traffic Management Research and Development Seminar, ATM 2013, June 2013.
+- Michael Schultz, Christian Schulz, and Hartmut Fricke.
+Efficiency of aircraft boarding procedures.
+ICRAT - International Conference on Research in Airport Transportation, June 2008.

@@ -433,8 +433,7 @@ class BoardingModel(mesa.Model):
         for _ in range(len(method_list)):
             reversed_method_list.append(method_list[i])
             i -= 1
-        return reversed_method_list    
-                
+        return reversed_method_list                
                 
     def seats_outside_in(self) -> list[Seat]:
         segments = 3 # window, middle seat, aile seat
